@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Engine Verification</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ff6b35;
+            border-bottom: 2px solid #ff6b35;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #4ec9b0;
+            margin-top: 30px;
+            border-bottom: 1px solid #4ec9b0;
+            padding-bottom: 5px;
+        }
+        .test-result {
+            margin: 15px 0;
+            padding: 15px;
+            background: #2d2d2d;
+            border-left: 4px solid #4ec9b0;
+            border-radius: 4px;
+        }
+        .test-result.pass {
+            border-left-color: #4ec9b0;
+        }
+        .test-result.fail {
+            border-left-color: #f48771;
+        }
+        .test-title {
+            font-weight: bold;
+            color: #4ec9b0;
+            margin-bottom: 8px;
+        }
+        .test-result.fail .test-title {
+            color: #f48771;
+        }
+        .test-details {
+            color: #858585;
+            font-size: 0.9em;
+            margin-left: 10px;
+            line-height: 1.6;
+        }
+        .match-box {
+            background: #0a2a4a;
+            border: 2px solid #ff6b35;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .score {
+            font-size: 2em;
+            color: #ff6b35;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .team-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .team {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #ff6b35;
+        }
+        .team h3 {
+            color: #ff6b35;
+            margin-top: 0;
+        }
+        .player-row {
+            display: grid;
+            grid-template-columns: 1fr 0.5fr 0.5fr 0.5fr;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #444;
+            font-size: 0.85em;
+        }
+        .player-row:last-child {
+            border-bottom: none;
+        }
+        .player-name {
+            color: #4ec9b0;
+        }
+        .stat {
+            text-align: right;
+        }
+        .events-log {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border-left: 4px solid #4ec9b0;
+        }
+        .event {
+            padding: 8px 0;
+            border-bottom: 1px solid #444;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        .event:last-child {
+            border-bottom: none;
+        }
+        .event-time {
+            color: #858585;
+            margin-right: 10px;
+        }
+        .event-type {
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        .event-desc {
+            color: #d4d4d4;
+        }
+        .pass-all {
+            background: #1e4620;
+            border: 2px solid #4ec9b0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: center;
+            color: #4ec9b0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .fail-all {
+            background: #4e1e1e;
+            border: 2px solid #f48771;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #f48771;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #f7931e;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #ff6b35;
+            text-align: center;
+        }
+        .stat-box .label {
+            color: #858585;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+        .stat-box .value {
+            color: #4ec9b0;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏀 Match Engine Verification</h1>
+    <p>Running complete basketball match simulation and verifying all systems</p>
+    
+    <div class="controls">
+        <button onclick="location.reload()">Run Match Again</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        // Dice Roller
+        class DiceRoller {
+            static rollDie(sides = 6) {
+                return Math.floor(Math.random() * sides) + 1;
+            }
+            static rollMultiple(quantity, sides) {
+                const rolls = [];
+                let total = 0;
+                for (let i = 0; i < quantity; i++) {
+                    const roll = this.rollDie(sides);
+                    rolls.push(roll);
+                    total += roll;
+                }
+                return { rolls, total, notation: `${quantity}d${sides}` };
+            }
+        }
+
+        // Player Class
+        class Player {
+            constructor(name, position, skillLevel = 3) {
+                this.name = name;
+                this.position = position;
+                this.skillLevel = Math.min(5, Math.max(1, skillLevel));
+                this.stats = {
+                    pointsScored: 0,
+                    assists: 0,
+                    rebounds: 0,
+                    steals: 0,
+                    blocks: 0,
+                };
+                this.isActive = true;
+                this.x = 0;
+                this.y = 0;
+            }
+            addPoints(points) {
+                this.stats.pointsScored += points;
+            }
+            addAssist() {
+                this.stats.assists++;
+            }
+        }
+
+        // Team Class
+        class Team {
+            constructor(name, players = []) {
+                this.name = name;
+                this.players = players;
+                this.score = 0;
+            }
+            addPlayer(player) {
+                if (this.players.length < 12) {
+                    this.players.push(player);
+                }
+            }
+            getActivePlayersOnCourt() {
+                return this.players.filter((p, i) => p.isActive && i < 5);
+            }
+            getPlayerByPosition(position) {
+                return this.players.find(p => p.position === position && p.isActive);
+            }
+            getActivePlayers() {
+                return this.players.filter(p => p.isActive);
+            }
+        }
+
+        // Court Class
+        class Court {
+            constructor(width = 50, height = 30) {
+                this.width = width;
+                this.height = height;
+                this.grid = this.initializeGrid();
+                this.ballPosition = { x: Math.floor(width / 2), y: Math.floor(height / 2) };
+                this.ballPossession = null;
+            }
+            initializeGrid() {
+                const grid = [];
+                for (let y = 0; y < this.height; y++) {
+                    const row = [];
+                    for (let x = 0; x < this.width; x++) {
+                        row.push(null);
+                    }
+                    grid.push(row);
+                }
+                return grid;
+            }
+            placePlayer(player, x, y) {
+                if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+                    throw new Error(`Invalid court position: (${x}, ${y})`);
+                }
+                if (player.x !== undefined && player.y !== undefined) {
+                    const prevX = Math.floor(player.x);
+                    const prevY = Math.floor(player.y);
+                    if (this.grid[prevY] && this.grid[prevY][prevX] === player) {
+                        this.grid[prevY][prevX] = null;
+                    }
+                }
+                player.x = x;
+                player.y = y;
+                this.grid[Math.floor(y)][Math.floor(x)] = player;
+            }
+            setupTeams(homeTeam, awayTeam) {
+                const homeActive = homeTeam.getActivePlayersOnCourt();
+                const awayActive = awayTeam.getActivePlayersOnCourt();
+                const homePositions = {
+                    'PG': { x: 5, y: 15 }, 'SG': { x: 10, y: 10 }, 'SF': { x: 10, y: 20 },
+                    'PF': { x: 20, y: 12 }, 'C': { x: 20, y: 18 }
+                };
+                const awayPositions = {
+                    'PG': { x: 45, y: 15 }, 'SG': { x: 40, y: 10 }, 'SF': { x: 40, y: 20 },
+                    'PF': { x: 30, y: 12 }, 'C': { x: 30, y: 18 }
+                };
+                homeActive.forEach(player => {
+                    const pos = homePositions[player.position] || { x: 10, y: 15 };
+                    this.placePlayer(player, pos.x, pos.y);
+                });
+                awayActive.forEach(player => {
+                    const pos = awayPositions[player.position] || { x: 40, y: 15 };
+                    this.placePlayer(player, pos.x, pos.y);
+                });
+                const homePG = homeTeam.getPlayerByPosition('PG');
+                if (homePG) {
+                    this.setBallPossession(homePG);
+                }
+            }
+            setBallPossession(player) {
+                this.ballPossession = player;
+                if (player) {
+                    this.ballPosition = { x: player.x, y: player.y };
+                }
+            }
+            movePlayer(player, targetX, targetY) {
+                const speedMap = { 'PG': 10, 'SG': 8, 'SF': 7, 'PF': 6, 'C': 5 };
+                const speed = speedMap[player.position] || 7;
+                const currentX = player.x;
+                const currentY = player.y;
+                const dx = targetX - currentX;
+                const dy = targetY - currentY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance === 0) return { x: currentX, y: currentY };
+                const moveDistance = Math.min(distance, speed);
+                const ratio = moveDistance / distance;
+                let newX = currentX + (dx * ratio);
+                let newY = currentY + (dy * ratio);
+                newX = Math.max(0, Math.min(this.width - 1, newX));
+                newY = Math.max(0, Math.min(this.height - 1, newY));
+                this.placePlayer(player, newX, newY);
+                if (this.ballPossession === player) {
+                    this.ballPosition = { x: newX, y: newY };
+                }
+                return { x: newX, y: newY, distance: distance - moveDistance };
+            }
+            areAdjacent(player1, player2, maxDistance = 3) {
+                const dx = player1.x - player2.x;
+                const dy = player1.y - player2.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance <= maxDistance;
+            }
+            getNearestOpponent(player, opponentTeamPlayers) {
+                let nearest = null;
+                let minDistance = Infinity;
+                for (let opponent of opponentTeamPlayers) {
+                    if (opponent.isActive) {
+                        const dx = opponent.x - player.x;
+                        const dy = opponent.y - player.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearest = opponent;
+                        }
+                    }
+                }
+                return nearest;
+            }
+            getPassingOptions(player, range = 15) {
+                const teammates = [];
+                for (let row of this.grid) {
+                    for (let candidate of row) {
+                        if (candidate && candidate !== player && candidate.isActive) {
+                            const distance = Math.sqrt(
+                                Math.pow(candidate.x - player.x, 2) + Math.pow(candidate.y - player.y, 2)
+                            );
+                            if (distance <= range && distance > 0) {
+                                teammates.push({ player: candidate, distance });
+                            }
+                        }
+                    }
+                }
+                return teammates.sort((a, b) => a.distance - b.distance);
+            }
+            getShootingDistance(player, isHomeTeam) {
+                const basketX = isHomeTeam ? 49 : 0;
+                const basketY = 15;
+                const distance = Math.sqrt(Math.pow(basketX - player.x, 2) + Math.pow(basketY - player.y, 2));
+                if (distance <= 8) return 'close';
+                if (distance <= 15) return 'mid';
+                return 'three';
+            }
+            getState() {
+                const players = [];
+                for (let row of this.grid) {
+                    for (let player of row) {
+                        if (player) {
+                            players.push({
+                                name: player.name,
+                                position: player.position,
+                                x: Math.round(player.x * 10) / 10,
+                                y: Math.round(player.y * 10) / 10,
+                                hasBall: this.ballPossession === player
+                            });
+                        }
+                    }
+                }
+                return {
+                    width: this.width,
+                    height: this.height,
+                    ballPosition: {
+                        x: Math.round(this.ballPosition.x * 10) / 10,
+                        y: Math.round(this.ballPosition.y * 10) / 10
+                    },
+                    ballPossession: this.ballPossession ? this.ballPossession.name : null,
+                    players
+                };
+            }
+        }
+
+        // Match Engine
+        class MatchEngine {
+            constructor(homeTeam, awayTeam) {
+                this.homeTeam = homeTeam;
+                this.awayTeam = awayTeam;
+                this.court = new Court(50, 30);
+                this.round = 0;
+                this.quarter = 1;
+                this.possession = 'home';
+                this.events = [];
+                this.homeTeam.score = 0;
+                this.awayTeam.score = 0;
+                this.court.setupTeams(homeTeam, awayTeam);
+            }
+            getPossessionTeam() {
+                return this.possession === 'home' ? this.homeTeam : this.awayTeam;
+            }
+            getDefendingTeam() {
+                return this.possession === 'home' ? this.awayTeam : this.homeTeam;
+            }
+            logEvent(type, description, details = {}) {
+                this.events.push({
+                    round: this.round,
+                    quarter: this.quarter,
+                    possession: this.possession,
+                    type,
+                    description,
+                    details,
+                    timestamp: new Date()
+                });
+            }
+            getRandomPlayer(team) {
+                const active = team.getActivePlayers();
+                return active[Math.floor(Math.random() * active.length)];
+            }
+            simulateAction() {
+                const possessionTeam = this.getPossessionTeam();
+                const defendingTeam = this.getDefendingTeam();
+                const isHome = this.possession === 'home';
+                let ballCarrier = this.court.ballPossession;
+                if (!ballCarrier || ballCarrier.isActive === false) {
+                    ballCarrier = possessionTeam.getPlayerByPosition('PG') || this.getRandomPlayer(possessionTeam);
+                    if (!ballCarrier) return false;
+                    this.court.setBallPossession(ballCarrier);
+                }
+                const defender = this.court.getNearestOpponent(ballCarrier, defendingTeam.getActivePlayers());
+                if (defender && this.court.areAdjacent(ballCarrier, defender, 2)) {
+                    const stealSuccess = this.simulateDribbleContest(ballCarrier, defender);
+                    if (stealSuccess === false) {
+                        this.logEvent('turnover', `${defender.name} steals from ${ballCarrier.name}!`);
+                        this.court.setBallPossession(defender);
+                        this.switchPossession();
+                        return false;
+                    }
+                }
+                const targetBasketX = isHome ? 49 : 0;
+                const targetBasketY = 15;
+                this.court.movePlayer(ballCarrier, targetBasketX, targetBasketY);
+                const shootDistance = this.court.getShootingDistance(ballCarrier, isHome);
+                const random = Math.random();
+                if (shootDistance === 'close' && random > 0.3) {
+                    return this.simulateShot(ballCarrier, '2pt', isHome);
+                } else if (shootDistance === 'three' && random > 0.5) {
+                    return this.simulateShot(ballCarrier, '3pt', isHome);
+                } else if (random > 0.6) {
+                    const targets = this.court.getPassingOptions(ballCarrier, 15);
+                    if (targets.length > 0) {
+                        const receiver = targets[0].player;
+                        this.logEvent('pass', `${ballCarrier.name} passes to ${receiver.name}`);
+                        this.court.setBallPossession(receiver);
+                        ballCarrier.addAssist();
+                        return true;
+                    }
+                }
+                this.logEvent('dribble', `${ballCarrier.name} dribbles the ball`);
+                return true;
+            }
+            simulateDribbleContest(ballCarrier, defender) {
+                const dribbleSkill = ballCarrier.skillLevel * 2 + DiceRoller.rollDie(4);
+                const stealSkill = defender.skillLevel * 2 + DiceRoller.rollDie(4);
+                const roll = DiceRoller.rollDie(20);
+                const threshold = 20 - (dribbleSkill - stealSkill);
+                const success = roll >= threshold;
+                this.logEvent('dribble_contest', 
+                    `${ballCarrier.name} vs ${defender.name}`,
+                    { roll, threshold, dribbleSkill, stealSkill, success }
+                );
+                return success;
+            }
+            simulateShot(shooter, shotType, isHome) {
+                const diceMap = {
+                    '2pt': {
+                        'PG': { q: 1, s: 4 }, 'SG': { q: 1, s: 6 }, 'SF': { q: 1, s: 6 },
+                        'PF': { q: 1, s: 8 }, 'C': { q: 2, s: 6 }
+                    },
+                    '3pt': {
+                        'PG': { q: 1, s: 3 }, 'SG': { q: 1, s: 6 }, 'SF': { q: 1, s: 6 },
+                        'PF': { q: 1, s: 4 }, 'C': { q: 1, s: 3 }
+                    }
+                };
+                const dice = diceMap[shotType][shooter.position];
+                const roll = DiceRoller.rollMultiple(dice.q, dice.s);
+                const successThreshold = shooter.skillLevel * 2;
+                const success = roll.total >= successThreshold;
+                if (success) {
+                    const points = shotType === '2pt' ? 2 : 3;
+                    shooter.addPoints(points);
+                    if (isHome) {
+                        this.homeTeam.score += points;
+                    } else {
+                        this.awayTeam.score += points;
+                    }
+                    this.logEvent('shot_made', `${shooter.name} makes a ${shotType}! (+${points})`);
+                    this.switchPossession();
+                    return true;
+                } else {
+                    this.logEvent('shot_missed', `${shooter.name} misses the ${shotType}`);
+                    return this.simulateRebound(shooter);
+                }
+            }
+            simulateRebound(shooter) {
+                const defendingTeam = this.getDefendingTeam();
+                const defenders = defendingTeam.getActivePlayers();
+                let bestRebounder = defenders[0];
+                let bestDistance = Infinity;
+                for (let defender of defenders) {
+                    const dist = Math.sqrt(Math.pow(defender.x - shooter.x, 2) + Math.pow(defender.y - shooter.y, 2));
+                    if (dist < bestDistance) {
+                        bestDistance = dist;
+                        bestRebounder = defender;
+                    }
+                }
+                const diceMap = { 'PG': { q: 1, s: 4 }, 'SG': { q: 1, s: 4 }, 'SF': { q: 1, s: 6 }, 'PF': { q: 2, s: 6 }, 'C': { q: 3, s: 6 } };
+                const shooterDice = diceMap[shooter.position];
+                const rebounderDice = diceMap[bestRebounder.position];
+                const shooterRoll = DiceRoller.rollMultiple(shooterDice.q, shooterDice.s);
+                const rebounderRoll = DiceRoller.rollMultiple(rebounderDice.q, rebounderDice.s);
+                if (rebounderRoll.total > shooterRoll.total) {
+                    this.logEvent('rebound', `${bestRebounder.name} grabs the rebound!`);
+                    this.court.setBallPossession(bestRebounder);
+                    this.switchPossession();
+                    return false;
+                } else {
+                    this.logEvent('offensive_rebound', `${shooter.name} gets the offensive rebound!`);
+                    this.court.setBallPossession(shooter);
+                    return true;
+                }
+            }
+            switchPossession() {
+                this.possession = this.possession === 'home' ? 'away' : 'home';
+            }
+            simulateQuarter() {
+                const roundsInQuarter = 25;
+                for (let i = 0; i < roundsInQuarter; i++) {
+                    this.round++;
+                    this.simulateAction();
+                }
+                this.logEvent('quarter_end', `End of Quarter ${this.quarter}`, {
+                    homeScore: this.homeTeam.score,
+                    awayScore: this.awayTeam.score
+                });
+                this.quarter++;
+            }
+            simulateMatch() {
+                this.logEvent('match_start', 'Match started');
+                for (let q = 1; q <= 4; q++) {
+                    this.simulateQuarter();
+                }
+                this.logEvent('match_end', 'Match ended');
+                return this.getMatchSummary();
+            }
+            getWinner() {
+                if (this.homeTeam.score > this.awayTeam.score) return this.homeTeam;
+                if (this.awayTeam.score > this.homeTeam.score) return this.awayTeam;
+                return null;
+            }
+            getMatchSummary() {
+                const winner = this.getWinner();
+                return {
+                    homeTeam: this.homeTeam.name,
+                    awayTeam: this.awayTeam.name,
+                    score: `${this.homeTeam.score}-${this.awayTeam.score}`,
+                    winner: winner ? winner.name : 'TIE',
+                    rounds: this.round,
+                    events: this.events,
+                    homeTeamStats: this.homeTeam.players.map(p => ({
+                        name: p.name,
+                        position: p.position,
+                        points: p.stats.pointsScored,
+                        assists: p.stats.assists
+                    })),
+                    awayTeamStats: this.awayTeam.players.map(p => ({
+                        name: p.name,
+                        position: p.position,
+                        points: p.stats.pointsScored,
+                        assists: p.stats.assists
+                    }))
+                };
+            }
+        }
+
+        // Run match on page load
+        window.addEventListener('load', () => {
+            const resultsDiv = document.getElementById('results');
+
+            // Create teams
+            const homeTeam = new Team('Lakers');
+            homeTeam.addPlayer(new Player('Magic', 'PG', 5));
+            homeTeam.addPlayer(new Player('Kobe', 'SG', 5));
+            homeTeam.addPlayer(new Player('LeBron', 'SF', 5));
+            homeTeam.addPlayer(new Player('Pau', 'PF', 4));
+            homeTeam.addPlayer(new Player('Shaq', 'C', 5));
+
+            const awayTeam = new Team('Celtics');
+            awayTeam.addPlayer(new Player('Rajon', 'PG', 4));
+            awayTeam.addPlayer(new Player('Ray', 'SG', 4));
+            awayTeam.addPlayer(new Player('Pierce', 'SF', 4));
+            awayTeam.addPlayer(new Player('Garnett', 'PF', 4));
+            awayTeam.addPlayer(new Player('Perkins', 'C', 3));
+
+            // Run match
+            const engine = new MatchEngine(homeTeam, awayTeam);
+            const summary = engine.simulateMatch();
+
+            // Display results
+            let html = `<h2>✅ MATCH COMPLETED</h2>`;
+            
+            // Match summary box
+            html += `
+                <div class="match-box">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <strong style="color: #4ec9b0;">${summary.homeTeam}</strong> vs <strong style="color: #4ec9b0;">${summary.awayTeam}</strong>
+                    </div>
+                    <div class="score">${summary.score}</div>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <strong style="color: #ff6b35;">Winner: ${summary.winner}</strong>
+                    </div>
+                    
+                    <div class="stat-grid">
+                        <div class="stat-box">
+                            <div class="label">Total Rounds</div>
+                            <div class="value">${summary.rounds}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Total Events</div>
+                            <div class="value">${summary.events.length}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Home PPG</div>
+                            <div class="value">${summary.homeTeam === summary.homeTeam ? summary.score.split('-')[0] : ''}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Away PPG</div>
+                            <div class="value">${summary.score.split('-')[1]}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Team stats
+            html += `<h2>Team Statistics</h2>`;
+            html += `<div class="team-stats">
+                <div class="team">
+                    <h3>${summary.homeTeam}</h3>
+                    ${summary.homeTeamStats.map(p => `
+                        <div class="player-row">
+                            <div class="player-name">${p.name}</div>
+                            <div class="stat" title="Position">${p.position}</div>
+                            <div class="stat" title="Points">${p.points}pts</div>
+                            <div class="stat" title="Assists">${p.assists}ast</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="team">
+                    <h3>${summary.awayTeam}</h3>
+                    ${summary.awayTeamStats.map(p => `
+                        <div class="player-row">
+                            <div class="player-name">${p.name}</div>
+                            <div class="stat" title="Position">${p.position}</div>
+                            <div class="stat" title="Points">${p.points}pts</div>
+                            <div class="stat" title="Assists">${p.assists}ast</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+            // Events log
+            html += `<h2>Match Events (Last 20)</h2>`;
+            html += `<div class="events-log">`;
+            
+            const lastEvents = summary.events.slice(-20);
+            for (let event of lastEvents) {
+                const quarter = event.quarter <= 4 ? `Q${event.quarter}` : 'OT';
+                html += `
+                    <div class="event">
+                        <span class="event-time">[${quarter}:${event.round}]</span>
+                        <span class="event-type">${event.type.toUpperCase()}</span>
+                        - <span class="event-desc">${event.description}</span>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+
+            // Verification tests
+            html += `<h2>Verification Tests</h2>`;
+
+            // Test 1: Match ran for 100 rounds
+            const pass1 = summary.rounds === 100;
+            html += `
+                <div class="test-result ${pass1 ? 'pass' : 'fail'}">
+                    <div class="test-title">${pass1 ? '✅' : '❌'} Match Duration</div>
+                    <div class="test-details">
+                        Expected: 100 rounds (4 quarters × 25)<br>
+                        Actual: ${summary.rounds} rounds<br>
+                        ${pass1 ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                </div>
+            `;
+
+            // Test 2: Score in reasonable range
+            const homeScore = parseInt(summary.score.split('-')[0]);
+            const awayScore = parseInt(summary.score.split('-')[1]);
+            const pass2 = homeScore >= 50 && homeScore <= 150 && awayScore >= 50 && awayScore <= 150;
+            html += `
+                <div class="test-result ${pass2 ? 'pass' : 'fail'}">
+                    <div class="test-title">${pass2 ? '✅' : '❌'} Score Range</div>
+                    <div class="test-details">
+                        Expected: 50-150 PPG (reasonable basketball)<br>
+                        Home: ${homeScore}, Away: ${awayScore}<br>
+                        ${pass2 ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                </div>
+            `;
+
+            // Test 3: Winner determined
+            const pass3 = summary.winner !== 'TIE' || homeScore === awayScore;
+            html += `
+                <div class="test-result ${pass3 ? 'pass' : 'fail'}">
+                    <div class="test-title">${pass3 ? '✅' : '❌'} Winner Determination</div>
+                    <div class="test-details">
+                        Winner: ${summary.winner}<br>
+                        ${homeScore} vs ${awayScore}<br>
+                        ${pass3 ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                </div>
+            `;
+
+            // Test 4: Events logged
+            const pass4 = summary.events.length > 50;
+            html += `
+                <div class="test-result ${pass4 ? 'pass' : 'fail'}">
+                    <div class="test-title">${pass4 ? '✅' : '❌'} Event Logging</div>
+                    <div class="test-details">
+                        Total events logged: ${summary.events.length}<br>
+                        Expected: 50+ (various plays throughout match)<br>
+                        ${pass4 ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                </div>
+            `;
+
+            // Test 5: Player stats tracked
+            const pass5 = summary.homeTeamStats.some(p => p.points > 0) && summary.awayTeamStats.some(p => p.points > 0);
+            html += `
+                <div class="test-result ${pass5 ? 'pass' : 'fail'}">
+                    <div class="test-title">${pass5 ? '✅' : '❌'} Player Stats Tracking</div>
+                    <div class="test-details">
+                        Home team total points: ${summary.homeTeamStats.reduce((a, p) => a + p.points, 0)}<br>
+                        Away team total points: ${summary.awayTeamStats.reduce((a, p) => a + p.points, 0)}<br>
+                        ${pass5 ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                </div>
+            `;
+
+            // Overall result
+            const allPass = pass1 && pass2 && pass3 && pass4 && pass5;
+            html += `
+                <div class="${allPass ? 'pass-all' : 'fail-all'}">
+                    ${allPass ? '🎉 ALL TESTS PASSED!' : '❌ Some tests failed'}
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        });
+    </script>
+</body>
+</html>
