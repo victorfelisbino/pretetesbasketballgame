@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narration System Test - Pretetê's Basketball</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #ff6b35; text-align: center; }
+        h2 { color: #fff; border-bottom: 2px solid #ff6b35; padding-bottom: 10px; }
+        .language-toggle {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .language-toggle button {
+            padding: 10px 30px;
+            margin: 0 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .language-toggle button.active {
+            background: #ff6b35;
+            color: white;
+        }
+        .language-toggle button:not(.active) {
+            background: #333;
+            color: #999;
+        }
+        .narration-box {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .narration-item {
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: #1a1a2e;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b35;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .narration-item.score { border-left-color: #4CAF50; }
+        .narration-item.miss { border-left-color: #f44336; }
+        .narration-item.steal { border-left-color: #ff9800; }
+        .narration-item.fastbreak { border-left-color: #9c27b0; }
+        .test-section {
+            margin: 30px 0;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+        .run-test {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .run-test:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <h1>🏀 Narration System Test</h1>
+    <p style="text-align: center; color: #999;">Testing bilingual play-by-play commentary</p>
+
+    <div class="language-toggle">
+        <button id="btn-pt" class="active" onclick="setLanguage('pt')">🇧🇷 Português</button>
+        <button id="btn-en" onclick="setLanguage('en')">🇺🇸 English</button>
+    </div>
+
+    <button class="run-test" onclick="runNarrationDemo()">▶️ Run Narration Demo</button>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number" id="stat-events">0</div>
+            <p>Narration Events</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="stat-language">PT</div>
+            <p>Current Language</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="stat-templates">0</div>
+            <p>Template Types</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Live Narration Feed</h2>
+        <div class="narration-box" id="narration-feed">
+            <p style="color: #666; text-align: center;">Click "Run Narration Demo" to see play-by-play commentary</p>
+        </div>
+    </div>
+
+    <script src="src/narration.js"></script>
+    <script>
+        let narrator = new Narration('pt');
+        let currentLanguage = 'pt';
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            narrator.setLanguage(lang);
+            
+            document.getElementById('btn-pt').classList.toggle('active', lang === 'pt');
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            document.getElementById('stat-language').textContent = lang.toUpperCase();
+        }
+
+        function getEventClass(eventType) {
+            if (eventType.includes('score') && !eventType.includes('Update')) return 'score';
+            if (eventType.includes('miss')) return 'miss';
+            if (eventType.includes('steal')) return 'steal';
+            if (eventType.includes('FastBreak') || eventType.includes('fastBreak')) return 'fastbreak';
+            return '';
+        }
+
+        function addNarrationToFeed(text, eventType) {
+            const feed = document.getElementById('narration-feed');
+            const item = document.createElement('div');
+            item.className = 'narration-item ' + getEventClass(eventType);
+            item.textContent = text;
+            feed.appendChild(item);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function clearFeed() {
+            const feed = document.getElementById('narration-feed');
+            feed.innerHTML = '';
+            narrator.clear();
+        }
+
+        function runNarrationDemo() {
+            clearFeed();
+            
+            const homeTeam = "Lakers";
+            const awayTeam = "Celtics";
+            
+            // Simulate a mini-match with various events
+            const events = [
+                () => narrator.matchStart(homeTeam, awayTeam),
+                () => narrator.possession("LeBron James", homeTeam),
+                () => narrator.movement("LeBron James"),
+                () => narrator.score2pt("LeBron James", homeTeam, false),
+                () => narrator.scoreUpdate(homeTeam, 2, awayTeam, 0),
+                
+                () => narrator.possessionChange(awayTeam),
+                () => narrator.possession("Jayson Tatum", awayTeam),
+                () => narrator.score3pt("Jayson Tatum", awayTeam, false),
+                () => narrator.scoreUpdate(homeTeam, 2, awayTeam, 3),
+                
+                () => narrator.possession("Anthony Davis", homeTeam),
+                () => narrator.miss2pt("Anthony Davis"),
+                
+                () => narrator.possessionChange(awayTeam),
+                () => narrator.steal("LeBron James", "Marcus Smart"),
+                () => narrator.fastBreakStart(homeTeam, "LeBron James"),
+                () => narrator.score2pt("LeBron James", homeTeam, true),
+                () => narrator.scoreUpdate(homeTeam, 4, awayTeam, 3),
+                
+                () => narrator.possession("Jaylen Brown", awayTeam),
+                () => narrator.miss3pt("Jaylen Brown"),
+                
+                () => narrator.steal("Austin Reaves", "Al Horford"),
+                () => narrator.fastBreakStart(homeTeam, "Austin Reaves"),
+                () => narrator.score3pt("Austin Reaves", homeTeam, true),
+                () => narrator.scoreUpdate(homeTeam, 7, awayTeam, 3),
+                
+                () => narrator.blowout(homeTeam, 4),
+                
+                () => narrator.possession("Jayson Tatum", awayTeam),
+                () => narrator.score3pt("Jayson Tatum", awayTeam, false),
+                () => narrator.scoreUpdate(homeTeam, 7, awayTeam, 6),
+                () => narrator.closeGame(1),
+                
+                () => narrator.quarterEnd(1, homeTeam, 7, awayTeam, 6),
+                
+                () => narrator.possession("D'Angelo Russell", homeTeam),
+                () => narrator.stealAttemptFail("Marcus Smart", "D'Angelo Russell"),
+                () => narrator.score2pt("D'Angelo Russell", homeTeam, false),
+                
+                () => narrator.comeback(awayTeam),
+                () => narrator.score3pt("Derrick White", awayTeam, false),
+                () => narrator.scoreUpdate(homeTeam, 9, awayTeam, 9),
+                () => narrator.matchTie(9),
+                
+                () => narrator.possession("LeBron James", homeTeam),
+                () => narrator.score2pt("LeBron James", homeTeam, false),
+                () => narrator.matchEnd(homeTeam, awayTeam, 11, 9)
+            ];
+
+            // Run events with delay for dramatic effect
+            let delay = 0;
+            events.forEach((eventFn, index) => {
+                setTimeout(() => {
+                    const lastEvent = narrator.getEvents();
+                    eventFn();
+                    const newEvents = narrator.getEvents();
+                    const latestEvent = newEvents[newEvents.length - 1];
+                    
+                    addNarrationToFeed(latestEvent.text, latestEvent.type);
+                    document.getElementById('stat-events').textContent = newEvents.length;
+                }, delay);
+                delay += 400;
+            });
+
+            // Update template count
+            const templateCount = Object.keys(templates[currentLanguage]).length;
+            document.getElementById('stat-templates').textContent = templateCount;
+        }
+
+        // Initialize stats
+        document.getElementById('stat-templates').textContent = Object.keys(templates['pt']).length;
+    </script>
+</body>
+</html>
