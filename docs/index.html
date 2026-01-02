@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pretetê's Basketball - A revolutionary basketball manager game inspired by Elifoot. Coming April 2026 to iOS, Android, and Web.">
+    <meta name="keywords" content="basketball game, manager game, Elifoot, sports simulation, mobile game">
+    <meta property="og:title" content="Pretetê's Basketball - Basketball Manager Game">
+    <meta property="og:description" content="The Elifoot of basketball. Manage your team, simulate matches, and compete in leagues. Coming April 2026.">
+    <meta property="og:type" content="website">
+    <title>Pretetê's Basketball - Manager Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+        }
+
+        nav {
+            background: #222;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #ff6b35;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            padding: 80px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h2 {
+            color: #ff6b35;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .hero-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: #f5f5f5;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .feature-card h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .roadmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .phase-box {
+            background: white;
+            border-left: 5px solid #ff6b35;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+
+        .phase-box h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+        }
+
+        .phase-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .phase-box li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            color: #666;
+        }
+
+        .phase-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-box .number {
+            font-size: 2.5rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .stat-box p {
+            color: #666;
+            margin-top: 10px;
+        }
+
+        footer {
+            background: #222;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        footer a {
+            color: #ff6b35;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .github-banner {
+            background: #333;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .github-banner a {
+            color: #ff6b35;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            header p {
+                font-size: 1rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏀 Pretetê's Basketball</h1>
+            <p>The Elifoot of Basketball Manager Games</p>
+            <p style="font-size: 1rem; margin-top: 20px;">Coming April 2026 to iOS, Android & Web</p>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#roadmap">Development Roadmap</a></li>
+            <li><a href="#gameplay">Gameplay</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank">GitHub</a></li>
+        </ul>
+    </nav>
+
+    <section id="features">
+        <div class="container">
+            <h2>Why Pretetê's Basketball?</h2>
+            <div class="hero-features">
+                <div class="feature-card">
+                    <h3>🎮 Turn-Based Strategy</h3>
+                    <p>Experience tactical basketball where every decision matters. Build plays, manage positions, and outthink your opponents.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 Deep Simulation</h3>
+                    <p>Our custom probability engine ensures realistic outcomes. Position-based stats, dice-driven contests, and balanced gameplay.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🏆 Team Management</h3>
+                    <p>Build your dream team of 12 players. Scout talent, develop skills, and dominate private leagues with friends.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🇧🇷 Portuguese Narration</h3>
+                    <p>Immersive commentary in Portuguese brings matches to life with play-by-play narration and dramatic moments.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚡ Fast-Paced Action</h3>
+                    <p>Play a full match in under 2 minutes. Perfect for quick gaming sessions or deep league competitions.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>👥 Multiplayer Leagues</h3>
+                    <p>Create private leagues with friends, compete for titles, and dominate the rankings with your team.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="gameplay">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div style="max-width: 800px; margin: 0 auto; background: #f5f5f5; padding: 40px; border-radius: 10px;">
+                <h3 style="color: #ff6b35; margin-bottom: 20px;">Match Simulation</h3>
+                <ol style="line-height: 2; color: #666; margin-left: 20px;">
+                    <li><strong>Build Your Team:</strong> Assemble 12 players with unique skills and positions</li>
+                    <li><strong>Simulate Match:</strong> Our engine runs 100 rounds of realistic basketball action</li>
+                    <li><strong>Watch It Unfold:</strong> Follow the game with position-based movement and skill contests</li>
+                    <li><strong>Use Strategy:</strong> Your formations and plays impact outcomes</li>
+                    <li><strong>See Results:</strong> Realistic scores (80-120 PPG), winners based on team skill</li>
+                </ol>
+
+                <h3 style="color: #ff6b35; margin: 30px 0 20px 0;">Probability System</h3>
+                <p style="color: #666; margin-bottom: 15px;">Our custom formulas ensure balanced, skill-based gameplay:</p>
+                <ul style="color: #666; margin-left: 40px; line-height: 2;">
+                    <li>Attack vs Defense: Success rate based on skill differential</li>
+                    <li>Dribble vs Steal: D20 system with dynamic thresholds</li>
+                    <li>Position-Based Dice: Centers roll 2d6, Point Guards roll 1d4, etc.</li>
+                    <li>Realistic Outcomes: Better teams win ~60-70% of matches</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="roadmap">
+        <div class="container">
+            <h2>Development Roadmap</h2>
+            <div class="roadmap">
+                <div class="phase-box">
+                    <h3>Phase 0: Web MVP (Weeks 1-2) 🟡 NOW</h3>
+                    <ul>
+                        <li>Court grid system</li>
+                        <li>Match simulation (100 rounds)</li>
+                        <li>Dribble/steal system (d20)</li>
+                        <li>Portuguese narration</li>
+                        <li>React web UI</li>
+                    </ul>
+                </div>
+
+                <div class="phase-box">
+                    <h3>Phase 1: Multiplayer (Weeks 3-4)</h3>
+                    <ul>
+                        <li>Firebase backend</li>
+                        <li>Team management</li>
+                        <li>Private leagues</li>
+                        <li>Player database</li>
+                        <li>Save/load system</li>
+                    </ul>
+                </div>
+
+                <div class="phase-box">
+                    <h3>Phase 2: Mobile Apps (Weeks 5-7)</h3>
+                    <ul>
+                        <li>React Native iOS app</li>
+                        <li>React Native Android app</li>
+                        <li>Push notifications</li>
+                        <li>Native performance</li>
+                        <li>App Store/Play Store</li>
+                    </ul>
+                </div>
+
+                <div class="phase-box">
+                    <h3>Phase 3: Launch (Week 8+) 🎯</h3>
+                    <ul>
+                        <li>Full production release</li>
+                        <li>Marketing campaign</li>
+                        <li>Community events</li>
+                        <li>Seasonal content</li>
+                        <li>Revenue monetization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <h2>Project Stats</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number">13-15</div>
+                    <p>Weeks to Launch</p>
+                </div>
+                <div class="stat-box">
+                    <div class="number">3,000-5,000</div>
+                    <p>Lines of Code</p>
+                </div>
+                <div class="stat-box">
+                    <div class="number">20+</div>
+                    <p>Test Cases</p>
+                </div>
+                <div class="stat-box">
+                    <div class="number">100</div>
+                    <p>Rounds per Match</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section style="background: #f5f5f5;">
+        <div class="container">
+            <h2>Tech Stack</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin: 40px 0;">
+                <div style="text-align: center;">
+                    <h3 style="color: #ff6b35; margin-bottom: 10px;">⚛️ React</h3>
+                    <p>Modern UI framework for responsive web and mobile</p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="color: #ff6b35; margin-bottom: 10px;">🔥 Firebase</h3>
+                    <p>Backend, database, and real-time multiplayer sync</p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="color: #ff6b35; margin-bottom: 10px;">📱 React Native</h3>
+                    <p>iOS and Android native applications</p>
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="color: #ff6b35; margin-bottom: 10px;">⚡ Vite</h3>
+                    <p>Fast build tool and development server</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="container">
+            <h2>Get Involved</h2>
+            <div style="text-align: center; max-width: 600px; margin: 40px auto;">
+                <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">
+                    Interested in Pretetê's Basketball? Join the community, follow development, and help shape the future of basketball manager games!
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://github.com/victorfelisbino/pretetesbasketballgame" class="cta-button" target="_blank">
+                        ⭐ Star on GitHub
+                    </a>
+                    <a href="https://github.com/victorfelisbino/pretetesbasketballgame/issues" class="cta-button" target="_blank">
+                        💬 Report Feedback
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p style="margin-bottom: 15px;">
+                <strong>Pretetê's Basketball</strong> - A basketball manager game inspired by Elifoot
+            </p>
+            <p style="margin-bottom: 15px; color: #999;">
+                Like the legendary Elifoot (1987-2025), but for basketball. 🏀
+            </p>
+            <p>
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank">GitHub Repository</a> •
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame/blob/master/README.md" target="_blank">Documentation</a> •
+                Version 1.0
+            </p>
+            <p style="margin-top: 20px; color: #999; font-size: 0.9rem;">
+                Made with 💜 by the Pretetê's Basketball Dev Team | © 2026
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
