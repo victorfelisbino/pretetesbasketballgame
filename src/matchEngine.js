@@ -3,7 +3,15 @@
  * Core game simulation loop - runs the basketball match
  */
 class MatchEngine {
-    constructor(homeTeam, awayTeam) {
+    /**
+     * Create a new match engine
+     * @param {Team} homeTeam - The home team
+     * @param {Team} awayTeam - The away team
+     * @param {object} options - Configuration options
+     * @param {string} options.language - Narration language ('pt' or 'en', default: 'pt')
+     * @param {boolean} options.enableNarration - Enable play-by-play narration (default: true)
+     */
+    constructor(homeTeam, awayTeam, options = {}) {
         this.homeTeam = homeTeam;
         this.awayTeam = awayTeam;
         this.court = new Court(50, 30);
@@ -18,8 +26,56 @@ class MatchEngine {
         this.homeTeam.score = 0;
         this.awayTeam.score = 0;
         
+        // Narration system
+        this.enableNarration = options.enableNarration !== false;
+        this.language = options.language || 'pt';
+        if (typeof Narration !== 'undefined') {
+            this.narrator = new Narration(this.language);
+        } else {
+            this.narrator = null;
+            this.enableNarration = false;
+        }
+        this.narrationLog = []; // Store narration texts
+        
         // Initialize court with teams
         this.court.setupTeams(homeTeam, awayTeam);
+    }
+    
+    /**
+     * Set narration language
+     * @param {string} language - 'pt' for Portuguese or 'en' for English
+     */
+    setLanguage(language) {
+        this.language = language;
+        if (this.narrator) {
+            this.narrator.setLanguage(language);
+        }
+    }
+    
+    /**
+     * Add narration for an event
+     * @param {string} eventType - Type of narration event
+     * @param {object} data - Data for the narration template
+     */
+    addNarration(eventType, data = {}) {
+        if (!this.enableNarration || !this.narrator) return null;
+        
+        const text = this.narrator.narrate(eventType, data);
+        this.narrationLog.push({
+            round: this.round,
+            quarter: this.quarter,
+            text,
+            eventType
+        });
+        return text;
+    }
+    
+    /**
+     * Get all narration entries
+     * @returns {Array} Array of narration objects
+     */
+    getNarrationLog() {
+        return this.narrationLog;
     }
 
     /**
@@ -109,13 +165,20 @@ class MatchEngine {
         if (defender && this.court.areAdjacent(ballCarrier, defender, 5) && Math.random() < 0.25) {
             const stealSuccess = this.simulateDribbleContest(ballCarrier, defender);
             
+            if (stealSuccess === true) {
+                // Ball carrier escaped
+                this.addNarration('stealAttemptFail', { defender: defender.name, attacker: ballCarrier.name });
+            }
+            
             if (stealSuccess === false) {
                 // Turnover! Defender gets fast break opportunity
                 this.logEvent('turnover', `${defender.name} steals from ${ballCarrier.name}!`);
+                this.addNarration('steal', { defender: defender.name, attacker: ballCarrier.name });
                 this.court.setBallPossession(defender);
                 this.switchPossession();
                 
                 // FAST BREAK: Stealing player gets immediate shot attempt!
+                this.addNarration('fastBreakStart', { team: this.getPossessionTeam().name, player: defender.name });
                 this.simulateFastBreak(defender);
                 return false;
             }
@@ -207,6 +270,14 @@ class MatchEngine {
                 `${shooter.name} makes a ${shotType}! (+${points})`,
                 { shotType, points, roll: totalRoll, difficulty }
             );
+            
+            // Add narration for the score
+            const team = isHome ? this.homeTeam.name : this.awayTeam.name;
+            if (shotType === '2pt') {
+                this.addNarration('score2pt', { player: shooter.name, team });
+            } else {
+                this.addNarration('score3pt', { player: shooter.name, team });
+            }
 
             // Switch possession after score
             this.switchPossession();
@@ -216,6 +287,13 @@ class MatchEngine {
                 `${shooter.name} misses the ${shotType}`,
                 { shotType, roll: totalRoll, difficulty }
             );
+            
+            // Add narration for the miss
+            if (shotType === '2pt') {
+                this.addNarration('miss2pt', { player: shooter.name });
+            } else {
+                this.addNarration('miss3pt', { player: shooter.name });
+            }
 
             // Rebound attempt
             return this.simulateRebound(shooter);
@@ -324,11 +402,26 @@ class MatchEngine {
                 `${player.name} scores on the fast break! (+${points})`,
                 { shotType, points, roll: totalRoll }
             );
+            
+            // Narrate fast break score
+            const team = isHome ? this.homeTeam.name : this.awayTeam.name;
+            if (shotType === '2pt') {
+                this.addNarration('score2ptFastBreak', { player: player.name, team });
+            } else {
+                this.addNarration('score3ptFastBreak', { player: player.name, team });
+            }
         } else {
             this.logEvent('fast_break_miss', 
                 `${player.name} misses the fast break ${shotType}!`,
                 { shotType, roll: totalRoll }
             );
+            
+            // Narrate fast break miss
+            if (shotType === '2pt') {
+                this.addNarration('miss2pt', { player: player.name });
+            } else {
+                this.addNarration('miss3pt', { player: player.name });
+            }
         }
         
         // After fast break, switch possession back
@@ -363,6 +456,24 @@ class MatchEngine {
             homeScore: this.homeTeam.score,
             awayScore: this.awayTeam.score
         });
+        
+        // Narrate quarter end
+        this.addNarration('quarterEnd', {
+            quarter: this.quarter,
+            homeTeam: this.homeTeam.name,
+            homeScore: this.homeTeam.score,
+            awayTeam: this.awayTeam.name,
+            awayScore: this.awayTeam.score
+        });
+        
+        // Check for close game or blowout
+        const diff = Math.abs(this.homeTeam.score - this.awayTeam.score);
+        if (diff <= 5) {
+            this.addNarration('closeGame', { diff });
+        } else if (diff >= 15) {
+            const leadingTeam = this.homeTeam.score > this.awayTeam.score ? this.homeTeam.name : this.awayTeam.name;
+            this.addNarration('blowout', { team: leadingTeam, diff });
+        }
 
         this.quarter++;
     }
@@ -375,6 +486,12 @@ class MatchEngine {
             homeTeam: this.homeTeam.name,
             awayTeam: this.awayTeam.name
         });
+        
+        // Narrate match start
+        this.addNarration('matchStart', {
+            homeTeam: this.homeTeam.name,
+            awayTeam: this.awayTeam.name
+        });
 
         for (let q = 1; q <= 4; q++) {
             this.simulateQuarter();
@@ -383,8 +500,22 @@ class MatchEngine {
         this.logEvent('match_end', 'Match ended', {
             homeScore: this.homeTeam.score,
             awayScore: this.awayTeam.score,
-            winner: this.getWinner().name
+            winner: this.getWinner() ? this.getWinner().name : 'TIE'
         });
+        
+        // Narrate match end
+        const winner = this.getWinner();
+        if (winner) {
+            const loser = winner === this.homeTeam ? this.awayTeam : this.homeTeam;
+            this.addNarration('matchEnd', {
+                winnerTeam: winner.name,
+                loserTeam: loser.name,
+                winnerScore: winner.score,
+                loserScore: loser.score
+            });
+        } else {
+            this.addNarration('matchTie', { score: this.homeTeam.score });
+        }
 
         return this.getMatchSummary();
     }

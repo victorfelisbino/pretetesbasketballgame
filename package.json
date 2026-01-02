@@ -1,0 +1,31 @@
+{
+  "name": "pretetesbasketballgame",
+  "version": "1.0.0",
+  "description": "A basketball simulation game inspired by Elifoot, built with React + Firebase",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/victorfelisbino/pretetesbasketballgame.git"
+  },
+  "keywords": ["basketball", "game", "simulation", "react", "elifoot"],
+  "author": "Pretetê's Basketball Team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/victorfelisbino/pretetesbasketballgame/issues"
+  },
+  "homepage": "https://github.com/victorfelisbino/pretetesbasketballgame#readme",
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
+    "vite": "^7.3.0"
+  }
+}
