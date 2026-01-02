@@ -535,3 +535,1292 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ===================================
+   Auth Screen Styles
+   =================================== */
+
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--bg-dark), var(--bg-card));
+}
+
+.auth-container {
+  background: var(--bg-card);
+  border-radius: 15px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-header h1 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.auth-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.auth-tab:hover:not(.active) {
+  background: var(--bg-dark);
+}
+
+.auth-error {
+  background: rgba(244, 67, 54, 0.15);
+  border: 1px solid var(--error);
+  color: var(--error);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 14px 16px;
+  border: 2px solid var(--bg-input);
+  border-radius: 8px;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-submit-btn {
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 10px;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 25px 0;
+  color: var(--text-muted);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--bg-input);
+}
+
+.auth-divider span {
+  padding: 0 15px;
+  font-size: 0.9rem;
+}
+
+.google-signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 2px solid var(--bg-input);
+  border-radius: 8px;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.google-signin-btn:hover:not(:disabled) {
+  border-color: var(--text-muted);
+  background: var(--bg-input);
+}
+
+.google-signin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 25px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.auth-link:hover {
+  color: var(--secondary);
+}
+
+/* User Header */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-name {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.user-name strong {
+  color: var(--secondary);
+}
+
+.logout-btn {
+  padding: 8px 15px;
+  border: 1px solid var(--primary);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.logout-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Guest Mode Button */
+.guest-mode-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border: 2px dashed var(--bg-input);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.guest-mode-btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text-light);
+}
+
+/* ===================================
+   League Styles
+   =================================== */
+
+.league-hub,
+.league-view {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.hub-header,
+.league-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.hub-header h2,
+.league-header h2 {
+  color: var(--primary);
+  font-size: 1.8rem;
+}
+
+.back-btn {
+  padding: 10px 20px;
+  border: 1px solid var(--bg-input);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.back-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.league-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.season-badge {
+  background: var(--secondary);
+  color: var(--bg-dark);
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-setup {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.status-in-progress {
+  background: rgba(78, 201, 176, 0.2);
+  color: var(--secondary);
+}
+
+.status-completed {
+  background: rgba(76, 175, 80, 0.2);
+  color: var(--success);
+}
+
+/* Create League */
+.create-league-btn {
+  width: 100%;
+  padding: 20px;
+  border: 2px dashed var(--primary);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: all 0.3s;
+  margin-bottom: 30px;
+}
+
+.create-league-btn:hover {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.create-league-form {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+.create-league-form h3 {
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.action-btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+.action-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(255, 107, 53, 0.3);
+}
+
+.action-btn.secondary {
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+.action-btn.secondary:hover {
+  color: var(--text-light);
+}
+
+/* Leagues List */
+.leagues-list h3 {
+  color: var(--text-muted);
+  margin-bottom: 15px;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  color: var(--text-muted);
+}
+
+.empty-state .hint {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.leagues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.league-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.league-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+}
+
+.league-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.league-card-header h4 {
+  color: var(--text-light);
+  font-size: 1.2rem;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+}
+
+.league-card-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.info-item {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.league-card-leader {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--bg-input);
+  padding-top: 12px;
+}
+
+.league-card-leader strong {
+  color: var(--secondary);
+}
+
+/* League View Panels */
+.league-setup-panel,
+.next-match-card,
+.season-complete-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.league-setup-panel h3,
+.next-match-card h3,
+.season-complete-card h3 {
+  color: var(--primary);
+  margin-bottom: 15px;
+}
+
+.next-match-card {
+  border: 2px solid var(--secondary);
+}
+
+.match-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  font-size: 1.3rem;
+  margin: 20px 0;
+}
+
+.match-preview .team-name {
+  font-weight: bold;
+}
+
+.match-preview .vs {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.round-info {
+  color: var(--text-muted);
+  margin-bottom: 15px;
+}
+
+.play-btn {
+  padding: 15px 40px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--secondary), #3ba08c);
+  color: var(--bg-dark);
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.play-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 25px rgba(78, 201, 176, 0.4);
+}
+
+.season-complete-card {
+  border: 2px solid var(--success);
+}
+
+.champion {
+  font-size: 1.3rem;
+  margin: 15px 0;
+}
+
+.champion strong {
+  color: var(--success);
+  font-size: 1.5rem;
+}
+
+/* League Tabs */
+.league-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+}
+
+.tab:hover {
+  color: var(--text-light);
+}
+
+.tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Standings Table */
+.standings-table {
+  overflow-x: auto;
+}
+
+.standings-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 12px 10px;
+  text-align: center;
+}
+
+.standings-table th {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.standings-table td {
+  border-bottom: 1px solid var(--bg-input);
+}
+
+.standings-table tr:last-child td {
+  border-bottom: none;
+}
+
+.standings-table .team-name-cell {
+  text-align: left;
+  font-weight: 500;
+}
+
+.standings-table .points {
+  font-weight: bold;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.standings-table tr.user-team {
+  background: rgba(78, 201, 176, 0.1);
+}
+
+.standings-table tr.user-team .team-name-cell {
+  color: var(--secondary);
+}
+
+/* Schedule */
+.round-group {
+  margin-bottom: 25px;
+}
+
+.round-group h4 {
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.match-card {
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 3px solid var(--bg-input);
+}
+
+.match-card.completed {
+  border-left-color: var(--success);
+}
+
+.match-card.scheduled {
+  border-left-color: var(--secondary);
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.match-teams span:first-child,
+.match-teams span:last-child {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.match-teams span:first-child {
+  text-align: left;
+}
+
+.match-teams span:last-child {
+  text-align: right;
+}
+
+.match-teams .score {
+  color: var(--primary);
+  font-weight: bold;
+  min-width: 60px;
+  text-align: center;
+}
+
+.match-teams .winner {
+  color: var(--success);
+  font-weight: bold;
+}
+
+/* Teams Grid */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.team-card {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.team-card.user-team {
+  border: 2px solid var(--secondary);
+}
+
+.team-card h4 {
+  color: var(--text-light);
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+}
+
+.team-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player-mini {
+  display: flex;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.player-mini .position {
+  color: var(--primary);
+  font-weight: bold;
+  min-width: 30px;
+}
+
+/* Empty message */
+.empty-message {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px;
+  font-style: italic;
+}
+
+/* Main Menu Buttons */
+.main-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 400px;
+  margin: 50px auto;
+}
+
+.menu-btn {
+  padding: 20px 30px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.menu-btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+.menu-btn.secondary {
+  background: var(--bg-card);
+  color: var(--text-light);
+  border: 2px solid var(--bg-input);
+}
+
+.menu-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.menu-btn.primary:hover {
+  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+}
+
+/* ===================================
+   Player Stats View
+   =================================== */
+
+.stats-view {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stats-header h2 {
+  color: var(--primary);
+  font-size: 1.6rem;
+}
+
+.stat-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: var(--bg-card);
+  border-radius: 10px;
+}
+
+.stat-selector label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.stat-selector select {
+  padding: 10px 15px;
+  border: 2px solid var(--bg-input);
+  border-radius: 8px;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.stat-selector select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.leaderboard-table {
+  overflow-x: auto;
+}
+
+.leaderboard-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 14px 12px;
+  text-align: left;
+}
+
+.leaderboard-table th {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.leaderboard-table tr.clickable {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.leaderboard-table tr.clickable:hover {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.leaderboard-table td {
+  border-bottom: 1px solid var(--bg-input);
+}
+
+.leaderboard-table .player-name {
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.leaderboard-table .stat-value {
+  font-weight: bold;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.rank-1 {
+  font-size: 1.2rem;
+}
+
+.rank-2, .rank-3 {
+  font-size: 1.1rem;
+}
+
+/* Players Grid */
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.player-card {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.player-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.player-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.position-badge {
+  background: var(--primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.player-card .player-name {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.player-card-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.player-card-stats .stat-item {
+  text-align: center;
+}
+
+.player-card-stats .stat-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.player-card-stats .stat-value {
+  display: block;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--secondary);
+}
+
+/* Player Profile */
+.player-profile {
+  background: var(--bg-card);
+  border-radius: 15px;
+  padding: 25px;
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.profile-position {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.profile-header h3 {
+  font-size: 1.8rem;
+  color: var(--text-light);
+  margin-bottom: 5px;
+}
+
+.profile-team {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.profile-overview {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 30px;
+  padding: 25px;
+  background: var(--bg-dark);
+  border-radius: 12px;
+}
+
+.big-stat {
+  text-align: center;
+}
+
+.big-stat .value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.big-stat .label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.profile-section {
+  margin-top: 25px;
+}
+
+.profile-section h4 {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.stat-box {
+  background: var(--bg-dark);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-box .label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.stat-box .value {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--secondary);
+}
+
+/* Shooting Bars */
+.shooting-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shooting-stat {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.shooting-stat .label {
+  min-width: 35px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.bar-container {
+  flex: 1;
+  height: 20px;
+  background: var(--bg-dark);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.bar.three-point {
+  background: linear-gradient(90deg, var(--secondary), #3ba08c);
+}
+
+.bar.fg {
+  background: linear-gradient(90deg, #9c27b0, #7b1fa2);
+}
+
+.shooting-stat .pct {
+  min-width: 55px;
+  text-align: right;
+  font-weight: bold;
+  color: var(--text-light);
+}
+
+/* Records */
+.records-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.record-item {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-dark);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  border: 2px solid var(--primary);
+}
+
+.record-item .label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.record-item .value {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+/* ===================================
+   Basketball Court Visualization
+   =================================== */
+
+.basketball-court-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 20px;
+  background: var(--bg-card);
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.basketball-court {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.player-marker {
+  transition: all 0.3s ease;
+}
+
+.player-marker:hover {
+  cursor: pointer;
+}
+
+.player-marker:hover circle {
+  filter: brightness(1.2);
+}
+
+.player-marker .player-name {
+  opacity: 0.8;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Pulse animation for possession */
+.player-marker circle.pulse {
+  animation: court-pulse 1.5s infinite;
+}
+
+@keyframes court-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9));
+  }
+}
+
+.ball {
+  animation: ball-bounce 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes ball-bounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-5px);
+  }
+}
+
+.court-action {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  padding: 10px 25px;
+  border-radius: 25px;
+  border: 2px solid var(--primary);
+}
+
+.action-text {
+  color: var(--text-light);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Match View with Court */
+.match-view-with-court {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.court-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.court-toggle button {
+  padding: 8px 20px;
+  border: 2px solid var(--bg-input);
+  border-radius: 20px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.court-toggle button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.court-toggle button:hover:not(.active) {
+  border-color: var(--primary);
+  color: var(--primary);
+}

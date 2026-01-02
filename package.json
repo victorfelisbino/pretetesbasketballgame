@@ -13,7 +13,13 @@
     "type": "git",
     "url": "git+https://github.com/victorfelisbino/pretetesbasketballgame.git"
   },
-  "keywords": ["basketball", "game", "simulation", "react", "elifoot"],
+  "keywords": [
+    "basketball",
+    "game",
+    "simulation",
+    "react",
+    "elifoot"
+  ],
   "author": "Pretetê's Basketball Team",
   "license": "ISC",
   "bugs": {
@@ -21,6 +27,7 @@
   },
   "homepage": "https://github.com/victorfelisbino/pretetesbasketballgame#readme",
   "dependencies": {
+    "firebase": "^12.7.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },

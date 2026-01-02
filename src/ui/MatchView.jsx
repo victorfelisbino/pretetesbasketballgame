@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import BasketballCourt from './BasketballCourt.jsx';
 
 // Import game engine modules (we'll bundle these for React)
 // For now, we'll recreate the core logic inline
@@ -113,6 +114,9 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
   const [isComplete, setIsComplete] = useState(false);
   const [playerStats, setPlayerStats] = useState({ home: [], away: [] });
   const [finalResult, setFinalResult] = useState(null);
+  const [possession, setPossession] = useState('home');
+  const [showCourt, setShowCourt] = useState(true);
+  const [currentAction, setCurrentAction] = useState(null);
   
   const narratorRef = useRef(new Narrator(language));
   const narrationFeedRef = useRef(null);
@@ -207,10 +211,12 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
         ? (shotType === '2pt' ? 'score2ptFastBreak' : 'score3ptFastBreak')
         : (shotType === '2pt' ? 'score2pt' : 'score3pt');
       addNarration(eventType, { player: shooter.name, team: shooterTeam.name });
+      setCurrentAction(`${shooter.name} - ${points} pts!`);
       
       return { scored: true, points, scoringTeam: shooterIsHome ? 'home' : 'away', newPossession: shooterIsHome ? 'away' : 'home' };
     } else {
       addNarration(shotType === '2pt' ? 'miss2pt' : 'miss3pt', { player: shooter.name });
+      setCurrentAction(null);
       // Simplified rebound - 60% goes to defense
       const newPoss = Math.random() < 0.6 
         ? (shooterIsHome ? 'away' : 'home')
@@ -253,6 +259,7 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
         }
         
         possession = result.newPossession;
+        setPossession(possession);
         
         // Small delay for visual effect (batch updates)
         if (r % 5 === 4) {
@@ -332,6 +339,8 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
       pts: 'Pts',
       continue: '➡️ Ver Resultado Final',
       matchComplete: '🏆 Partida Finalizada!',
+      showCourt: 'Mostrar Quadra',
+      hideCourt: 'Ocultar Quadra',
     },
     en: {
       quarter: 'Quarter',
@@ -346,6 +355,8 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
       pts: 'Pts',
       continue: '➡️ See Final Result',
       matchComplete: '🏆 Match Complete!',
+      showCourt: 'Show Court',
+      hideCourt: 'Hide Court',
     },
   };
 
@@ -370,6 +381,27 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
           {t.quarter}: <span>Q{quarter}</span> | {t.round}: <span>{round}/100</span>
         </div>
       </div>
+
+      {/* Court Toggle */}
+      <div className="court-toggle">
+        <button 
+          className={showCourt ? 'active' : ''}
+          onClick={() => setShowCourt(!showCourt)}
+        >
+          🏀 {showCourt ? t.hideCourt : t.showCourt}
+        </button>
+      </div>
+
+      {/* Basketball Court Visualization */}
+      {showCourt && (
+        <BasketballCourt
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          possession={possession}
+          action={currentAction}
+          language={language}
+        />
+      )}
 
       {/* Controls */}
       <div className="match-controls">
