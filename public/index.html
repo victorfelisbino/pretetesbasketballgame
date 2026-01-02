@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pretete's Basketball Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏀 Pretete's Basketball Game POC</h1>
+            <div class="game-info">
+                <div class="score-board">
+                    <div class="team team-a">
+                        <h2 id="teamAName">Team A</h2>
+                        <div class="score" id="scoreA">0</div>
+                    </div>
+                    <div class="quarter-display">
+                        <span id="quarterText">Q1</span>
+                        <span id="timeText">00:00</span>
+                    </div>
+                    <div class="team team-b">
+                        <h2 id="teamBName">Team B</h2>
+                        <div class="score" id="scoreB">0</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="game-board">
+                <div class="court">
+                    <canvas id="gameCanvas" width="800" height="400"></canvas>
+                </div>
+
+                <div class="game-panel">
+                    <div class="current-player">
+                        <h3>Current Player Action</h3>
+                        <div id="playerInfo">
+                            <p>Select a player to begin</p>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <h3>Available Actions</h3>
+                        <div id="actionsContainer">
+                            <button class="btn btn-action" data-action="2point">2-Point Shot</button>
+                            <button class="btn btn-action" data-action="3point">3-Point Shot</button>
+                            <button class="btn btn-action" data-action="assist">Assist</button>
+                            <button class="btn btn-action" data-action="rebound">Rebound</button>
+                            <button class="btn btn-action" data-action="steal">Steal</button>
+                            <button class="btn btn-action" data-action="freethrow">Free Throw</button>
+                            <button class="btn btn-action" data-action="block">Block</button>
+                            <button class="btn btn-action" data-action="foul">Foul</button>
+                        </div>
+                    </div>
+
+                    <div class="dice-roller">
+                        <h3>Dice Roll Result</h3>
+                        <div id="diceResult">
+                            <p>Waiting for action...</p>
+                        </div>
+                    </div>
+
+                    <div class="game-log">
+                        <h3>Game Log</h3>
+                        <ul id="gameLog"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn">Start Game</button>
+                <button class="btn btn-secondary" id="nextQuarterBtn" disabled>Next Quarter</button>
+                <button class="btn btn-secondary" id="resetBtn">Reset Game</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Basketball Game POC © 2026 - By Pretete</p>
+        </footer>
+    </div>
+
+    <script src="../src/dice.js"></script>
+    <script src="../src/player.js"></script>
+    <script src="../src/team.js"></script>
+    <script src="../src/gameEngine.js"></script>
+    <script src="../src/ui.js"></script>
+    <script src="../src/main.js"></script>
+</body>
+</html>
