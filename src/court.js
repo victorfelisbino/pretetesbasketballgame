@@ -282,6 +282,42 @@ class Court {
     }
 
     /**
+     * Reset player positions after possession change
+     */
+    resetPositions(homeTeam, awayTeam) {
+        const homeActive = homeTeam.getActivePlayersOnCourt();
+        const awayActive = awayTeam.getActivePlayersOnCourt();
+
+        // Home team starting positions
+        const homePositions = {
+            'PG': { x: 5, y: 15 },
+            'SG': { x: 10, y: 10 },
+            'SF': { x: 10, y: 20 },
+            'PF': { x: 20, y: 12 },
+            'C': { x: 20, y: 18 }
+        };
+
+        // Away team starting positions
+        const awayPositions = {
+            'PG': { x: 45, y: 15 },
+            'SG': { x: 40, y: 10 },
+            'SF': { x: 40, y: 20 },
+            'PF': { x: 30, y: 12 },
+            'C': { x: 30, y: 18 }
+        };
+
+        homeActive.forEach(player => {
+            const pos = homePositions[player.position] || { x: 10, y: 15 };
+            this.placePlayer(player, pos.x, pos.y);
+        });
+
+        awayActive.forEach(player => {
+            const pos = awayPositions[player.position] || { x: 40, y: 15 };
+            this.placePlayer(player, pos.x, pos.y);
+        });
+    }
+
+    /**
      * Clear court (reset for new match)
      */
     reset() {

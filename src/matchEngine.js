@@ -68,12 +68,28 @@ class MatchEngine {
         const defendingTeam = this.getDefendingTeam();
         const isHome = this.possession === 'home';
 
-        // Get player with ball
+        // Get player with ball - MUST be from possession team
         let ballCarrier = this.court.ballPossession;
-        if (!ballCarrier || ballCarrier.isActive === false) {
-            // Find PG or random player
-            ballCarrier = possessionTeam.getPlayerByPosition('PG') || this.getRandomPlayer(possessionTeam);
-            if (!ballCarrier) return false;
+        const possessionPlayers = possessionTeam.getActivePlayers();
+        
+        // Check if current ball carrier is on the possession team
+        if (!ballCarrier || !possessionPlayers.includes(ballCarrier)) {
+            // Pick a random player from possession team (weighted by position)
+            // PG most likely to bring ball up, but others can too
+            const weights = { 'PG': 40, 'SG': 25, 'SF': 15, 'PF': 12, 'C': 8 };
+            let totalWeight = 0;
+            for (let p of possessionPlayers) {
+                totalWeight += weights[p.position] || 10;
+            }
+            let roll = Math.random() * totalWeight;
+            for (let p of possessionPlayers) {
+                roll -= weights[p.position] || 10;
+                if (roll <= 0) {
+                    ballCarrier = p;
+                    break;
+                }
+            }
+            if (!ballCarrier) ballCarrier = possessionPlayers[0];
             this.court.setBallPossession(ballCarrier);
         }
 
@@ -148,24 +164,24 @@ class MatchEngine {
      * Returns true if score, false if miss/turnover
      */
     simulateShot(shooter, shotType, isHome) {
-        // Base success rate by position for each shot type
-        const diceMap = {
-            '2pt': { 'PG': 8, 'SG': 10, 'SF': 10, 'PF': 12, 'C': 12 },
-            '3pt': { 'PG': 10, 'SG': 12, 'SF': 12, 'PF': 8, 'C': 6 }
+        // Shooting uses d20 + skill modifier vs difficulty
+        // Skill 5: +5 bonus, Skill 1: +1 bonus
+        const skillBonus = shooter.skillLevel;
+        
+        // Position modifiers for shot types
+        const positionMod = {
+            '2pt': { 'PG': 0, 'SG': 1, 'SF': 1, 'PF': 2, 'C': 3 },  // Big men better at 2pt
+            '3pt': { 'PG': 2, 'SG': 3, 'SF': 2, 'PF': 0, 'C': -2 } // Guards better at 3pt
         };
         
-        // Skill adds extra dice: Skill 5 = 2 dice, Skill 1 = 1 die
-        const numDice = 1 + Math.floor(shooter.skillLevel / 3);
-        const sides = diceMap[shotType][shooter.position];
-        const roll = DiceRoller.rollMultiple(numDice, sides);
+        const posMod = positionMod[shotType][shooter.position] || 0;
+        const roll = DiceRoller.rollDie(20);
+        const totalRoll = roll + skillBonus + posMod;
         
-        // Success threshold: lower = easier to score
-        // 2pt threshold: 4 (easy layups), 3pt threshold: 6 (harder)
-        const baseThreshold = shotType === '2pt' ? 4 : 6;
-        // Skill reduces threshold: Skill 5 = -2, Skill 1 = 0
-        const skillBonus = Math.floor((shooter.skillLevel - 1) / 2);
-        const successThreshold = Math.max(2, baseThreshold - skillBonus);
-        const success = roll.total >= successThreshold;
+        // Difficulty thresholds (need to beat to score)
+        // 2pt: DC 12 (~50% for average player), 3pt: DC 15 (~35% for average)
+        const difficulty = shotType === '2pt' ? 12 : 15;
+        const success = totalRoll >= difficulty;
 
         if (success) {
             const points = shotType === '2pt' ? 2 : 3;
@@ -179,7 +195,7 @@ class MatchEngine {
 
             this.logEvent('shot_made', 
                 `${shooter.name} makes a ${shotType}! (+${points})`,
-                { shotType, points, roll: roll.total }
+                { shotType, points, roll: totalRoll, difficulty }
             );
 
             // Switch possession after score
@@ -188,7 +204,7 @@ class MatchEngine {
         } else {
             this.logEvent('shot_missed', 
                 `${shooter.name} misses the ${shotType}`,
-                { shotType, roll: roll.total }
+                { shotType, roll: totalRoll, difficulty }
             );
 
             // Rebound attempt
@@ -261,6 +277,11 @@ class MatchEngine {
      */
     switchPossession() {
         this.possession = this.possession === 'home' ? 'away' : 'home';
+        // Clear ball possession so next action picks a new player from new team
+        this.court.ballPossession = null;
+        
+        // Reset all players to starting positions for new possession
+        this.court.resetPositions(this.homeTeam, this.awayTeam);
     }
 
     /**
