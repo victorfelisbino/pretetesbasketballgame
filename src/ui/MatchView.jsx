@@ -112,6 +112,7 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
   const [isSimulating, setIsSimulating] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [playerStats, setPlayerStats] = useState({ home: [], away: [] });
+  const [finalResult, setFinalResult] = useState(null);
   
   const narratorRef = useRef(new Narrator(language));
   const narrationFeedRef = useRef(null);
@@ -297,18 +298,24 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
       away: awayTeam.players.map(p => ({ name: p.name, position: p.position, points: p.stats.pointsScored })),
     });
     
+    // Store final result for "Continue" button
+    setFinalResult({
+      homeTeam: homeTeam.name,
+      awayTeam: awayTeam.name,
+      score: `${hScore} - ${aScore}`,
+      winner: winner ? winner.name : 'TIE',
+    });
+    
     setIsSimulating(false);
     setIsComplete(true);
     
-    // Notify parent after delay
-    setTimeout(() => {
-      onMatchEnd({
-        homeTeam: homeTeam.name,
-        awayTeam: awayTeam.name,
-        score: `${hScore} - ${aScore}`,
-        winner: winner ? winner.name : 'TIE',
-      });
-    }, 3000);
+    // User will click "Continue" button to proceed - no auto-transition
+  };
+  
+  const handleContinue = () => {
+    if (finalResult) {
+      onMatchEnd(finalResult);
+    }
   };
 
   const texts = {
@@ -323,6 +330,8 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
       player: 'Jogador',
       pos: 'Pos',
       pts: 'Pts',
+      continue: '➡️ Ver Resultado Final',
+      matchComplete: '🏆 Partida Finalizada!',
     },
     en: {
       quarter: 'Quarter',
@@ -335,6 +344,8 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
       player: 'Player',
       pos: 'Pos',
       pts: 'Pts',
+      continue: '➡️ See Final Result',
+      matchComplete: '🏆 Match Complete!',
     },
   };
 
@@ -362,13 +373,25 @@ function MatchView({ homeTeam, awayTeam, language, onMatchEnd }) {
 
       {/* Controls */}
       <div className="match-controls">
-        <button 
-          className="simulate-btn" 
-          onClick={simulateMatch}
-          disabled={isSimulating || isComplete}
-        >
-          {isSimulating ? t.simulating : t.simulate}
-        </button>
+        {!isComplete ? (
+          <button 
+            className="simulate-btn" 
+            onClick={simulateMatch}
+            disabled={isSimulating}
+          >
+            {isSimulating ? t.simulating : t.simulate}
+          </button>
+        ) : (
+          <div className="match-complete-controls">
+            <p className="match-complete-text">{t.matchComplete}</p>
+            <button 
+              className="continue-btn" 
+              onClick={handleContinue}
+            >
+              {t.continue}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Narration Feed */}
