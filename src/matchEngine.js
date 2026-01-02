@@ -93,41 +93,25 @@ class MatchEngine {
             }
         }
 
-        // Move towards basket - multiple steps per action
+        // Move towards basket - higher skill = more steps
+        // Skill 5 = 4 steps, Skill 1 = 2 steps
         const targetBasketX = isHome ? 49 : 0;
         const targetBasketY = 15;
+        const moveSteps = 1 + Math.ceil(ballCarrier.skillLevel / 2);
         
-        for (let step = 0; step < 3; step++) {
+        for (let step = 0; step < moveSteps; step++) {
             this.court.movePlayer(ballCarrier, targetBasketX, targetBasketY);
         }
 
         // Check shooting distance
         const shootDistance = this.court.getShootingDistance(ballCarrier, isHome);
 
-        // Decide action: shoot or dribble
-        const random = Math.random();
-        
-        // Higher shooting frequencies to ensure scoring happens
-        if (shootDistance === 'close') {
-            // In 2-pointer range: 70% shoot
-            if (random < 0.7) {
-                return this.simulateShot(ballCarrier, '2pt', isHome);
-            }
-        } else if (shootDistance === 'mid') {
-            // Mid-range: 50% shoot
-            if (random < 0.5) {
-                return this.simulateShot(ballCarrier, '2pt', isHome);
-            }
+        // Always shoot - every round is a shot attempt
+        if (shootDistance === 'close' || shootDistance === 'mid') {
+            return this.simulateShot(ballCarrier, '2pt', isHome);
         } else {
-            // 3-pointer range: 40% shoot
-            if (random < 0.4) {
-                return this.simulateShot(ballCarrier, '3pt', isHome);
-            }
+            return this.simulateShot(ballCarrier, '3pt', isHome);
         }
-
-        // Dribble (default action)
-        this.logEvent('dribble', `${ballCarrier.name} dribbles the ball`);
-        return true;
     }
 
     /**
@@ -164,29 +148,23 @@ class MatchEngine {
      * Returns true if score, false if miss/turnover
      */
     simulateShot(shooter, shotType, isHome) {
+        // Base success rate by position for each shot type
         const diceMap = {
-            '2pt': {
-                'PG': { q: 1, s: 6 },
-                'SG': { q: 1, s: 8 },
-                'SF': { q: 1, s: 8 },
-                'PF': { q: 1, s: 10 },
-                'C': { q: 1, s: 10 }
-            },
-            '3pt': {
-                'PG': { q: 1, s: 8 },
-                'SG': { q: 1, s: 10 },
-                'SF': { q: 1, s: 10 },
-                'PF': { q: 1, s: 12 },
-                'C': { q: 1, s: 12 }
-            }
+            '2pt': { 'PG': 8, 'SG': 10, 'SF': 10, 'PF': 12, 'C': 12 },
+            '3pt': { 'PG': 10, 'SG': 12, 'SF': 12, 'PF': 8, 'C': 6 }
         };
-
-        const dice = diceMap[shotType][shooter.position];
-        const roll = DiceRoller.rollMultiple(dice.q, dice.s);
         
-        // Success threshold based on skill: Skill 5 = 70% success, Skill 1 = 20% success
-        // Formula: roll >= (11 - skillLevel) ensures higher skill = better shooting
-        const successThreshold = 11 - shooter.skillLevel;
+        // Skill adds extra dice: Skill 5 = 2 dice, Skill 1 = 1 die
+        const numDice = 1 + Math.floor(shooter.skillLevel / 3);
+        const sides = diceMap[shotType][shooter.position];
+        const roll = DiceRoller.rollMultiple(numDice, sides);
+        
+        // Success threshold: lower = easier to score
+        // 2pt threshold: 4 (easy layups), 3pt threshold: 6 (harder)
+        const baseThreshold = shotType === '2pt' ? 4 : 6;
+        // Skill reduces threshold: Skill 5 = -2, Skill 1 = 0
+        const skillBonus = Math.floor((shooter.skillLevel - 1) / 2);
+        const successThreshold = Math.max(2, baseThreshold - skillBonus);
         const success = roll.total >= successThreshold;
 
         if (success) {

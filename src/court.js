@@ -107,7 +107,7 @@ class Court {
 
     /**
      * Move player towards target position
-     * Movement speed depends on position (PG faster, C slower)
+     * Movement speed depends on position (PG faster, C slower) + skill bonus
      */
     movePlayer(player, targetX, targetY) {
         const speedMap = {
@@ -118,7 +118,10 @@ class Court {
             'C': 5     // Center - slowest
         };
 
-        const speed = speedMap[player.position] || 7;
+        // Add skill bonus: Skill 5 adds +3 speed, Skill 1 adds +0
+        const baseSpeed = speedMap[player.position] || 7;
+        const skillBonus = Math.floor((player.skillLevel - 1) * 0.75);
+        const speed = baseSpeed + skillBonus;
         const currentX = player.x;
         const currentY = player.y;
 
