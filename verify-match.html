@@ -491,35 +491,44 @@
                     if (!ballCarrier) ballCarrier = possessionPlayers[0];
                     this.court.setBallPossession(ballCarrier);
                 }
-                const defender = this.court.getNearestOpponent(ballCarrier, defendingTeam.getActivePlayers());
-                // Only attempt steal if defender is very close (within 1.5 squares)
-                // and only 30% chance to even attempt steal
-                if (defender && this.court.areAdjacent(ballCarrier, defender, 1.5) && Math.random() < 0.3) {
-                    const stealSuccess = this.simulateDribbleContest(ballCarrier, defender);
-                    if (stealSuccess === false) {
-                        this.logEvent('turnover', `${defender.name} steals from ${ballCarrier.name}!`);
-                        this.court.setBallPossession(defender);
-                        this.switchPossession();
-                        return false;
-                    }
-                }
+                
+                // Move towards basket FIRST
                 const targetBasketX = isHome ? 49 : 0;
                 const targetBasketY = 15;
-                
-                // Higher skill players move more - Skill 5 = 4 steps, Skill 1 = 2 steps
                 const moveSteps = 1 + Math.ceil(ballCarrier.skillLevel / 2);
                 for (let step = 0; step < moveSteps; step++) {
                     this.court.movePlayer(ballCarrier, targetBasketX, targetBasketY);
                 }
                 
+                // Check for steal AFTER movement (when near defenders)
+                const defender = this.court.getNearestOpponent(ballCarrier, defendingTeam.getActivePlayers());
+                if (defender && this.court.areAdjacent(ballCarrier, defender, 5) && Math.random() < 0.25) {
+                    const stealSuccess = this.simulateDribbleContest(ballCarrier, defender);
+                    if (stealSuccess === false) {
+                        this.logEvent('turnover', `${defender.name} steals from ${ballCarrier.name}!`);
+                        this.court.setBallPossession(defender);
+                        this.switchPossession();
+                        // FAST BREAK: Stealing player gets immediate shot attempt!
+                        this.simulateFastBreak(defender);
+                        return false;
+                    }
+                }
+                
                 const shootDistance = this.court.getShootingDistance(ballCarrier, isHome);
                 
-                // Always shoot - this is action-based, every round should have a shot attempt
-                if (shootDistance === 'close' || shootDistance === 'mid') {
-                    return this.simulateShot(ballCarrier, '2pt', isHome);
-                } else {
-                    return this.simulateShot(ballCarrier, '3pt', isHome);
+                // Determine shot type based on distance and position
+                let shotType = '2pt';
+                if (shootDistance === 'three') {
+                    shotType = '3pt';
+                } else if (shootDistance === 'mid') {
+                    // Guards prefer 3-pointers even from mid-range
+                    const threePointChance = { 'PG': 0.4, 'SG': 0.4, 'SF': 0.2, 'PF': 0.05, 'C': 0 };
+                    if (Math.random() < (threePointChance[ballCarrier.position] || 0)) {
+                        shotType = '3pt';
+                    }
                 }
+                
+                return this.simulateShot(ballCarrier, shotType, isHome);
             }
             simulateDribbleContest(ballCarrier, defender) {
                 const dribbleSkill = ballCarrier.skillLevel * 2 + DiceRoller.rollDie(4);
@@ -595,6 +604,41 @@
                     this.court.setBallPossession(shooter);
                     return true;
                 }
+            }
+            simulateFastBreak(player) {
+                const isHome = this.possession === 'home';
+                this.logEvent('fast_break', `${player.name} on the fast break!`);
+                
+                // Fast break shot has +3 bonus (easier shot)
+                const skillBonus = player.skillLevel + 3;
+                
+                // Guards tend to pull up for 3, big men go for layup
+                const threePointChance = { 'PG': 0.5, 'SG': 0.6, 'SF': 0.3, 'PF': 0.1, 'C': 0 };
+                const shotType = Math.random() < (threePointChance[player.position] || 0) ? '3pt' : '2pt';
+                
+                const positionMod = {
+                    '2pt': { 'PG': 0, 'SG': 1, 'SF': 1, 'PF': 2, 'C': 3 },
+                    '3pt': { 'PG': 2, 'SG': 3, 'SF': 2, 'PF': 0, 'C': -2 }
+                };
+                
+                const posMod = positionMod[shotType][player.position] || 0;
+                const roll = DiceRoller.rollDie(20);
+                const totalRoll = roll + skillBonus + posMod;
+                
+                const difficulty = shotType === '2pt' ? 12 : 15;
+                const success = totalRoll >= difficulty;
+                
+                if (success) {
+                    const points = shotType === '2pt' ? 2 : 3;
+                    player.addPoints(points);
+                    if (isHome) { this.homeTeam.score += points; } else { this.awayTeam.score += points; }
+                    this.logEvent('fast_break_score', `${player.name} scores on the fast break! (+${points})`);
+                } else {
+                    this.logEvent('fast_break_miss', `${player.name} misses the fast break ${shotType}!`);
+                }
+                
+                // After fast break, switch possession back
+                this.switchPossession();
             }
             switchPossession() {
                 this.possession = this.possession === 'home' ? 'away' : 'home';
