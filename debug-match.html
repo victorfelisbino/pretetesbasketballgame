@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Match Test</title>
+    <style>
+        body { font-family: monospace; background: #1e1e1e; color: #d4d4d4; padding: 20px; }
+        .log { background: #2d2d2d; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .shot { color: #4ec9b0; }
+        .error { color: #f48771; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Match Test</h1>
+    <div id="output" class="log"></div>
+
+    <script>
+        class DiceRoller {
+            static rollDie(sides = 6) {
+                return Math.floor(Math.random() * sides) + 1;
+            }
+            static rollMultiple(quantity, sides) {
+                const rolls = [];
+                let total = 0;
+                for (let i = 0; i < quantity; i++) {
+                    const roll = this.rollDie(sides);
+                    rolls.push(roll);
+                    total += roll;
+                }
+                return { rolls, total, notation: `${quantity}d${sides}` };
+            }
+        }
+
+        class Player {
+            constructor(name, position, skillLevel = 3) {
+                this.name = name;
+                this.position = position;
+                this.skillLevel = skillLevel;
+                this.stats = { pointsScored: 0 };
+                this.isActive = true;
+                this.x = 0;
+                this.y = 0;
+            }
+            addPoints(points) {
+                this.stats.pointsScored += points;
+            }
+        }
+
+        class Team {
+            constructor(name, players = []) {
+                this.name = name;
+                this.players = players;
+                this.score = 0;
+            }
+            addPlayer(player) {
+                if (this.players.length < 12) {
+                    this.players.push(player);
+                }
+            }
+            getActivePlayersOnCourt() {
+                return this.players.filter((p, i) => p.isActive && i < 5);
+            }
+            getActivePlayers() {
+                return this.players.filter(p => p.isActive);
+            }
+        }
+
+        class Court {
+            constructor(width = 50, height = 30) {
+                this.width = width;
+                this.height = height;
+                this.ballPossession = null;
+            }
+            setupTeams(homeTeam, awayTeam) {
+                const homeActive = homeTeam.getActivePlayersOnCourt();
+                homeActive[0].x = 5;
+                homeActive[0].y = 15;
+                this.ballPossession = homeActive[0];
+            }
+            movePlayer(player, targetX, targetY) {
+                const speedMap = { 'PG': 10, 'SG': 8, 'SF': 7, 'PF': 6, 'C': 5 };
+                const speed = speedMap[player.position] || 7;
+                const dx = targetX - player.x;
+                const dy = targetY - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance === 0) return { x: player.x, y: player.y };
+                const moveDistance = Math.min(distance, speed);
+                const ratio = moveDistance / distance;
+                let newX = player.x + (dx * ratio);
+                let newY = player.y + (dy * ratio);
+                newX = Math.max(0, Math.min(this.width - 1, newX));
+                newY = Math.max(0, Math.min(this.height - 1, newY));
+                player.x = newX;
+                player.y = newY;
+                return { x: newX, y: newY, distance: distance - moveDistance };
+            }
+            getShootingDistance(player, isHomeTeam) {
+                const basketX = isHomeTeam ? 49 : 0;
+                const basketY = 15;
+                const distance = Math.sqrt(Math.pow(basketX - player.x, 2) + Math.pow(basketY - player.y, 2));
+                if (distance <= 8) return 'close';
+                if (distance <= 15) return 'mid';
+                return 'three';
+            }
+        }
+
+        const log = document.getElementById('output');
+        let output = '';
+
+        function addLog(msg, type = 'normal') {
+            console.log(msg);
+            if (type === 'shot') {
+                output += `<div class="shot">✓ ${msg}</div>`;
+            } else if (type === 'error') {
+                output += `<div class="error">✗ ${msg}</div>`;
+            } else {
+                output += `<div>${msg}</div>`;
+            }
+        }
+
+        // Create simple match
+        const homeTeam = new Team('Test');
+        homeTeam.addPlayer(new Player('PG', 'PG', 5));
+        
+        const court = new Court();
+        court.setupTeams(homeTeam, null);
+        
+        const pg = homeTeam.players[0];
+        
+        addLog(`Starting test - PG at (${pg.x}, ${pg.y}), Skill: ${pg.skillLevel}`);
+        addLog('');
+        addLog('=== SIMULATING 10 POSSESSIONS ===');
+        addLog('');
+        
+        let shotsAttempted = 0;
+        let shotsMade = 0;
+        
+        for (let poss = 1; poss <= 10; poss++) {
+            addLog(`Possession ${poss}:`);
+            
+            // Reset position
+            pg.x = 5;
+            pg.y = 15;
+            
+            // Simulate movement towards basket
+            for (let round = 1; round <= 10; round++) {
+                court.movePlayer(pg, 49, 15);
+                const distance = Math.sqrt(Math.pow(49 - pg.x, 2) + Math.pow(15 - pg.y, 2));
+                const shootDistance = court.getShootingDistance(pg, true);
+                
+                addLog(`  Round ${round}: PG at (${Math.round(pg.x*10)/10}, ${pg.y}), distance=${Math.round(distance*10)/10}, range=${shootDistance}`);
+                
+                // Check if can shoot
+                if (shootDistance === 'close') {
+                    const random = Math.random();
+                    addLog(`    → In close range! Random=${Math.round(random*100)}% ${random < 0.5 ? '→ SHOOT' : '→ PASS/DRIBBLE'}`);
+                    
+                    if (random < 0.5) {
+                        shotsAttempted++;
+                        // Try to make shot
+                        const dice = { q: 1, s: 6 };
+                        const roll = DiceRoller.rollMultiple(dice.q, dice.s);
+                        const threshold = 11 - pg.skillLevel;
+                        const success = roll.total >= threshold;
+                        
+                        addLog(`    Shooting: rolled ${roll.total}, threshold=${threshold}, ${success ? 'MADE!' : 'MISSED'}`);
+                        
+                        if (success) {
+                            shotsMade++;
+                            pg.addPoints(2);
+                            addLog(`    <span class="shot">✓ SCORE! PG now has ${pg.stats.pointsScored} points</span>`);
+                        }
+                    }
+                    break;
+                }
+                
+                if (round === 10) {
+                    addLog(`    → Never got into close range`);
+                }
+            }
+            addLog('');
+        }
+        
+        addLog('=== RESULTS ===');
+        addLog(`Shots Attempted: ${shotsAttempted}`);
+        addLog(`Shots Made: ${shotsMade}`);
+        addLog(`Points: ${pg.stats.pointsScored}`);
+        addLog(`Success Rate: ${shotsAttempted > 0 ? Math.round(shotsMade / shotsAttempted * 100) : 0}%`);
+        
+        log.innerHTML = output;
+    </script>
+</body>
+</html>

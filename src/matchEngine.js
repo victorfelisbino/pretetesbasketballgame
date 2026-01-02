@@ -79,7 +79,9 @@ class MatchEngine {
 
         // Check for steal attempt
         const defender = this.court.getNearestOpponent(ballCarrier, defendingTeam.getActivePlayers());
-        if (defender && this.court.areAdjacent(ballCarrier, defender, 2)) {
+        // Only attempt steal if defender is very close (within 1.5 squares)
+        // and only 30% chance to even attempt steal
+        if (defender && this.court.areAdjacent(ballCarrier, defender, 1.5) && Math.random() < 0.3) {
             const stealSuccess = this.simulateDribbleContest(ballCarrier, defender);
             
             if (stealSuccess === false) {
@@ -91,58 +93,35 @@ class MatchEngine {
             }
         }
 
-        // Move towards basket
+        // Move towards basket - multiple steps per action
         const targetBasketX = isHome ? 49 : 0;
         const targetBasketY = 15;
-        this.court.movePlayer(ballCarrier, targetBasketX, targetBasketY);
+        
+        for (let step = 0; step < 3; step++) {
+            this.court.movePlayer(ballCarrier, targetBasketX, targetBasketY);
+        }
 
         // Check shooting distance
         const shootDistance = this.court.getShootingDistance(ballCarrier, isHome);
 
-        // Decide action: pass, dribble, or shoot
+        // Decide action: shoot or dribble
         const random = Math.random();
         
+        // Higher shooting frequencies to ensure scoring happens
         if (shootDistance === 'close') {
-            // In 2-pointer range: 50% shoot, 30% pass, 20% dribble
+            // In 2-pointer range: 70% shoot
+            if (random < 0.7) {
+                return this.simulateShot(ballCarrier, '2pt', isHome);
+            }
+        } else if (shootDistance === 'mid') {
+            // Mid-range: 50% shoot
             if (random < 0.5) {
                 return this.simulateShot(ballCarrier, '2pt', isHome);
-            } else if (random < 0.8) {
-                const targets = this.court.getPassingOptions(ballCarrier, 15);
-                if (targets.length > 0) {
-                    const receiver = targets[0].player;
-                    this.logEvent('pass', `${ballCarrier.name} passes to ${receiver.name}`);
-                    this.court.setBallPossession(receiver);
-                    ballCarrier.addAssist();
-                    return true;
-                }
-            }
-        } else if (shootDistance === 'three') {
-            // In 3-pointer range: 35% shoot 3pt, 45% pass, 20% dribble
-            if (random < 0.35) {
-                return this.simulateShot(ballCarrier, '3pt', isHome);
-            } else if (random < 0.8) {
-                const targets = this.court.getPassingOptions(ballCarrier, 15);
-                if (targets.length > 0) {
-                    const receiver = targets[0].player;
-                    this.logEvent('pass', `${ballCarrier.name} passes to ${receiver.name}`);
-                    this.court.setBallPossession(receiver);
-                    ballCarrier.addAssist();
-                    return true;
-                }
             }
         } else {
-            // Mid-range: 25% shoot, 50% pass, 25% dribble
-            if (random < 0.25) {
-                return this.simulateShot(ballCarrier, '2pt', isHome);
-            } else if (random < 0.75) {
-                const targets = this.court.getPassingOptions(ballCarrier, 15);
-                if (targets.length > 0) {
-                    const receiver = targets[0].player;
-                    this.logEvent('pass', `${ballCarrier.name} passes to ${receiver.name}`);
-                    this.court.setBallPossession(receiver);
-                    ballCarrier.addAssist();
-                    return true;
-                }
+            // 3-pointer range: 40% shoot
+            if (random < 0.4) {
+                return this.simulateShot(ballCarrier, '3pt', isHome);
             }
         }
 
