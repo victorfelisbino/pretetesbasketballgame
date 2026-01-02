@@ -187,26 +187,27 @@ class MatchEngine {
     simulateShot(shooter, shotType, isHome) {
         const diceMap = {
             '2pt': {
-                'PG': { q: 1, s: 4 },
-                'SG': { q: 1, s: 6 },
-                'SF': { q: 1, s: 6 },
-                'PF': { q: 1, s: 8 },
-                'C': { q: 2, s: 6 }
+                'PG': { q: 1, s: 6 },
+                'SG': { q: 1, s: 8 },
+                'SF': { q: 1, s: 8 },
+                'PF': { q: 1, s: 10 },
+                'C': { q: 1, s: 10 }
             },
             '3pt': {
-                'PG': { q: 1, s: 3 },
-                'SG': { q: 1, s: 6 },
-                'SF': { q: 1, s: 6 },
-                'PF': { q: 1, s: 4 },
-                'C': { q: 1, s: 3 }
+                'PG': { q: 1, s: 8 },
+                'SG': { q: 1, s: 10 },
+                'SF': { q: 1, s: 10 },
+                'PF': { q: 1, s: 12 },
+                'C': { q: 1, s: 12 }
             }
         };
 
         const dice = diceMap[shotType][shooter.position];
         const roll = DiceRoller.rollMultiple(dice.q, dice.s);
         
-        // Skill modifier (higher skill = better shooting)
-        const successThreshold = shooter.skillLevel * 2;
+        // Success threshold based on skill: Skill 5 = 70% success, Skill 1 = 20% success
+        // Formula: roll >= (11 - skillLevel) ensures higher skill = better shooting
+        const successThreshold = 11 - shooter.skillLevel;
         const success = roll.total >= successThreshold;
 
         if (success) {
