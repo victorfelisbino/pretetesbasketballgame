@@ -57,7 +57,7 @@ export default function AuthScreen({ language = 'pt' }) {
     <div className="auth-screen">
       <div className="auth-container">
         <div className="auth-header">
-          <h1>🏀 Pretetê's Basketball</h1>
+          <h1>🏀 Quadra Legacy</h1>
           <p className="auth-subtitle">{t.subtitle}</p>
         </div>
 

@@ -1,6 +1,6 @@
 # 📋 Daily Development Checklist & Progress Log
 
-**Project:** Pretetê's Basketball Game  
+**Project:** Quadra Legacy  
 **Phase:** 0 - Web MVP (Core Engine)  
 **Target Duration:** 2 weeks (Jan 1-14, 2026)
 

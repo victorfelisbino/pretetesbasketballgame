@@ -1,7 +1,7 @@
 {
-  "name": "Pretetê's Basketball",
-  "short_name": "Pretetê",
-  "description": "The Elifoot of Basketball - Manage your basketball team!",
+  "name": "Quadra Legacy",
+  "short_name": "Quadra",
+  "description": "The ultimate basketball manager game - Build your dynasty!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a2e",

@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Pretetê's Basketball - The ultimate basketball manager game. Build your dream team, dominate leagues, and become a legend. Coming April 2026!">
-    <meta name="keywords" content="basketball game, manager game, sports simulation, mobile game, NBA, basketball manager">
-    <meta property="og:title" content="Pretetê's Basketball - Build Your Dynasty">
+    <meta name="description" content="Quadra Legacy - The ultimate basketball manager game. Build your dream team, dominate leagues, and become a legend. Coming April 2026!">
+    <meta name="keywords" content="basketball game, manager game, sports simulation, mobile game, NBA, basketball manager, quadra legacy">
+    <meta property="og:title" content="Quadra Legacy - Build Your Dynasty">
     <meta property="og:description" content="The Elifoot of basketball. Manage your team, simulate matches, and compete in leagues. Coming April 2026 to iOS, Android & Web.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://victorfelisbino.github.io/pretetesbasketballgame/preview.png">
     <meta name="twitter:card" content="summary_large_image">
-    <title>Pretetê's Basketball - Build Your Dynasty 🏀</title>
+    <title>Quadra Legacy - Build Your Dynasty 🏀</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -756,8 +756,20 @@
                 display: none;
             }
 
+            .lang-selector {
+                display: none;
+            }
+
             .hero {
                 padding: 100px 20px 60px;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
             }
 
             .hero-buttons {
@@ -765,9 +777,23 @@
                 align-items: center;
             }
 
+            .btn {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+
             .platforms {
                 flex-wrap: wrap;
                 gap: 20px;
+            }
+
+            .quote-section .quote-text {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
             }
 
             .stats-grid {
@@ -776,7 +802,7 @@
             }
 
             .stat-number {
-                font-size: 3rem;
+                font-size: 2.5rem;
             }
 
             .features-grid {
@@ -785,6 +811,42 @@
 
             .roadmap-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .cta-title {
+                font-size: 2rem;
+            }
+
+            .newsletter-form {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .newsletter-form input,
+            .newsletter-form button {
+                width: 100%;
+            }
+
+            .footer-content {
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .platforms {
+                justify-content: center;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.6rem;
             }
         }
 
@@ -858,7 +920,7 @@
 
     <!-- Navigation -->
     <nav>
-        <a href="#" class="logo">🏀 PRETETÊ'S <span>BASKETBALL</span></a>
+        <a href="#" class="logo">🏀 QUADRA <span>LEGACY</span></a>
         <ul class="nav-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#gameplay">Gameplay</a></li>
@@ -1092,7 +1154,7 @@
     <section class="cta-section" id="notify">
         <div class="cta-content fade-in">
             <h2 class="cta-title">Ready to Build<br>Your Dynasty?</h2>
-            <p class="cta-desc">Be the first to know when Pretetê's Basketball launches. Get exclusive early access and updates.</p>
+            <p class="cta-desc">Be the first to know when Quadra Legacy launches. Get exclusive early access and updates.</p>
             
             <form class="newsletter-form" onsubmit="event.preventDefault(); this.querySelector('button').textContent = '✅ Subscribed!'; this.querySelector('input').disabled = true;">
                 <input type="email" placeholder="Enter your email" required>
@@ -1116,7 +1178,7 @@
     <!-- Footer -->
     <footer>
         <div class="footer-content">
-            <div class="footer-logo">🏀 PRETETÊ'S BASKETBALL</div>
+            <div class="footer-logo">🏀 QUADRA LEGACY</div>
             <p>The Elifoot of Basketball • Coming April 2026</p>
             <p style="margin-top: 10px;">
                 <a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank">GitHub</a> • 

@@ -1,5 +1,5 @@
 /**
- * Pretetê's Basketball - Bilingual Narration System
+ * Quadra Legacy - Bilingual Narration System
  * Provides play-by-play commentary in Portuguese (BR) and English (US)
  */
 

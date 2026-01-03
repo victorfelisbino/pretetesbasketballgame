@@ -1,5 +1,5 @@
 /* ===================================
-   Pretetê's Basketball - Main Styles
+   Quadra Legacy - Main Styles
    =================================== */
 
 * {
@@ -1891,4 +1891,118 @@ body {
 .court-toggle button:hover:not(.active) {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+/* ===================================
+   Mobile Responsive Enhancements
+   =================================== */
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 12px 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .user-info {
+    font-size: 0.85rem;
+  }
+
+  .btn, button {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+
+  .match-view {
+    padding: 10px;
+  }
+
+  .scoreboard {
+    padding: 15px;
+  }
+
+  .score-display {
+    font-size: 2rem;
+  }
+
+  .team-name {
+    font-size: 0.85rem;
+  }
+
+  .live-feed {
+    max-height: 250px;
+    font-size: 0.85rem;
+  }
+
+  .court-container {
+    overflow-x: auto;
+  }
+
+  .basketball-court {
+    min-width: 350px;
+  }
+
+  .player-stats-view {
+    padding: 10px;
+  }
+
+  .player-stats-table {
+    font-size: 0.75rem;
+  }
+
+  .player-stats-table th,
+  .player-stats-table td {
+    padding: 6px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    text-align: center;
+    justify-content: center;
+  }
+
+  .app-header h1 {
+    font-size: 1.1rem;
+    width: 100%;
+  }
+
+  .score-display {
+    font-size: 1.8rem;
+  }
+
+  .quarter-select,
+  .timer-display {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .game-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .game-controls button {
+    width: 100%;
+  }
+
+  .nav-tabs {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .nav-tab {
+    flex: 1 1 45%;
+    min-width: 100px;
+    text-align: center;
+    padding: 10px;
+  }
 }

@@ -144,7 +144,7 @@ function GameApp() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🏀 Pretetê's Basketball</h1>
+        <h1>🏀 Quadra Legacy</h1>
         <div className="user-info">
           {isAuthenticated && userData && (
             <span className="user-name">
@@ -271,7 +271,7 @@ function GameApp() {
       </main>
 
       <footer className="app-footer">
-        <p>Pretetê's Basketball © 2026 | The Elifoot of Basketball</p>
+        <p>Quadra Legacy © 2026 | The Elifoot of Basketball</p>
       </footer>
     </div>
   );

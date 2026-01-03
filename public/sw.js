@@ -109,7 +109,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification("Pretetê's Basketball", options)
+    self.registration.showNotification("Quadra Legacy", options)
   );
 });
 

@@ -1,7 +1,7 @@
 {
-  "name": "pretetesbasketballgame",
+  "name": "quadra-legacy",
   "version": "1.0.0",
-  "description": "A basketball simulation game inspired by Elifoot, built with React + Firebase",
+  "description": "Quadra Legacy - The ultimate basketball manager game inspired by Elifoot",
   "type": "module",
   "scripts": {
     "dev": "vite",

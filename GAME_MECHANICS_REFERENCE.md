@@ -1,6 +1,6 @@
 # 🎮 Game Mechanics Quick Reference
 
-**For:** Developers building Pretetê's Basketball Game  
+**For:** Developers building Quadra Legacy  
 **Ref:** From Game Design Document + Your Excel Sheets  
 **Last Updated:** January 1, 2026
 

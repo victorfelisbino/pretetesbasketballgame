@@ -1,4 +1,4 @@
-# 🏀 Pretetê's Basketball - Development Roadmap
+# 🏀 Quadra Legacy - Development Roadmap
 
 **Project:** Mobile Basketball Manager Game (Inspired by Elifoot)  
 **Start Date:** January 1, 2026  

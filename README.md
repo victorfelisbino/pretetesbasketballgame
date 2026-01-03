@@ -1,6 +1,6 @@
-# 🏀 Pretetê's Basketball - Mobile Manager Game
+# 🏀 Quadra Legacy - Basketball Manager Game
 
-**A basketball simulation game inspired by Elifoot, built with React + Firebase**
+**The ultimate basketball simulation game inspired by Elifoot, built with React + Firebase**
 
 ---
 
@@ -423,4 +423,4 @@ git push
 **Status:** 🟡 Phase 0 in Progress  
 **Last Updated:** January 1, 2026
 
-**Made with 💜 by the Pretetê's Basketball Dev Team**
+**Made with 💜 by the Quadra Legacy Dev Team**
