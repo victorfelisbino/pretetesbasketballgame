@@ -6,20 +6,20 @@ const defaultPlayers = {
   home: [
     { name: 'LeBron James', position: 'SF', skillLevel: 5 },
     { name: 'Anthony Davis', position: 'PF', skillLevel: 5 },
-    { name: 'Austin Reaves', position: 'SG', skillLevel: 3 },
+    { name: 'Austin Reaves', position: 'SG', skillLevel: 4 },
     { name: "D'Angelo Russell", position: 'PG', skillLevel: 4 },
-    { name: 'Rui Hachimura', position: 'C', skillLevel: 3 },
+    { name: 'Jaxson Hayes', position: 'C', skillLevel: 3 },
   ],
   away: [
     { name: 'Jayson Tatum', position: 'SF', skillLevel: 5 },
-    { name: 'Jaylen Brown', position: 'SG', skillLevel: 5 },
+    { name: 'Jaylen Brown', position: 'SG', skillLevel: 4 },
     { name: 'Derrick White', position: 'PG', skillLevel: 4 },
     { name: 'Al Horford', position: 'C', skillLevel: 3 },
     { name: 'Kristaps Porziņģis', position: 'PF', skillLevel: 4 },
   ],
 };
 
-function TeamSetup({ onStartMatch, language }) {
+function TeamSetup({ onStartMatch, onBack, language }) {
   const [homeTeamName, setHomeTeamName] = useState('Lakers');
   const [awayTeamName, setAwayTeamName] = useState('Celtics');
   const [homePlayers, setHomePlayers] = useState(defaultPlayers.home);
@@ -34,6 +34,7 @@ function TeamSetup({ onStartMatch, language }) {
       skill: 'Hab.',
       startMatch: '🏀 Iniciar Partida!',
       position: 'Pos',
+      back: '← Voltar',
     },
     en: {
       title: '⚙️ Team Setup',
@@ -43,6 +44,7 @@ function TeamSetup({ onStartMatch, language }) {
       skill: 'Skill',
       startMatch: '🏀 Start Match!',
       position: 'Pos',
+      back: '← Back',
     },
   };
 
@@ -66,6 +68,8 @@ function TeamSetup({ onStartMatch, language }) {
         skillLevel: parseInt(p.skillLevel),
         stats: { pointsScored: 0, assists: 0, rebounds: 0, steals: 0, blocks: 0 },
         isActive: true,
+        stamina: 100, // Full stamina at game start
+        maxStamina: 100,
         x: 0,
         y: 0,
       })),
@@ -85,6 +89,8 @@ function TeamSetup({ onStartMatch, language }) {
         skillLevel: parseInt(p.skillLevel),
         stats: { pointsScored: 0, assists: 0, rebounds: 0, steals: 0, blocks: 0 },
         isActive: true,
+        stamina: 100, // Full stamina at game start
+        maxStamina: 100,
         x: 0,
         y: 0,
       })),
@@ -134,6 +140,20 @@ function TeamSetup({ onStartMatch, language }) {
 
   return (
     <div className="team-setup">
+      {onBack && (
+        <button className="back-btn" onClick={onBack} style={{
+          marginBottom: '20px',
+          padding: '10px 20px',
+          background: 'transparent',
+          border: '2px solid #ff6b35',
+          color: '#ff6b35',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontSize: '1rem'
+        }}>
+          {t.back}
+        </button>
+      )}
       <h2>{t.title}</h2>
 
       <div className="teams-container">

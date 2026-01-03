@@ -1,3 +1,6 @@
+import { ActionResolver } from './actionResolver.js';
+import { DribbleSystem } from './dribbleSystem.js';
+
 /**
  * Match Engine
  * Core game simulation loop - runs the basketball match
@@ -205,59 +208,88 @@ class MatchEngine {
 
     /**
      * Simulate dribble vs steal contest (d20 system)
+     * Uses DribbleSystem for proper d20 mechanics
      * Returns true if dribble wins, false if steal wins
      */
     simulateDribbleContest(ballCarrier, defender) {
-        // Get dribble and steal attributes (based on skill level)
-        const dribbleSkill = ballCarrier.skillLevel * 2 + DiceRoller.rollDie(4);
-        const stealSkill = defender.skillLevel * 2 + DiceRoller.rollDie(4);
+        // Map skill level (1-5) to dribble/steal attribute (1-20)
+        const dribbleAttr = ballCarrier.dribbling || (ballCarrier.skillLevel * 4);
+        const stealAttr = defender.stealing || (defender.skillLevel * 4);
 
-        // Roll d20
-        const roll = DiceRoller.rollDie(20);
-        const threshold = 20 - (dribbleSkill - stealSkill);
-
-        const success = roll >= threshold;
+        // Use proper DribbleSystem
+        const result = DribbleSystem.resolveDribbleContest(
+            { ...ballCarrier, dribbling: dribbleAttr },
+            { ...defender, stealing: stealAttr }
+        );
 
         this.logEvent('dribble_contest', 
-            `${ballCarrier.name} (dribble ${dribbleSkill}) vs ${defender.name} (steal ${stealSkill})`,
+            result.description,
             {
-                roll,
-                threshold,
-                dribbleSkill,
-                stealSkill,
-                success
+                roll: result.roll,
+                threshold: result.threshold,
+                dribbleSkill: result.dribbleSkill,
+                stealSkill: result.stealSkill,
+                success: result.success,
+                successPercent: result.successPercent
             }
         );
 
-        return success;
+        return result.success;
     }
 
     /**
-     * Simulate shot attempt
+     * Simulate shot attempt using ActionResolver
      * Returns true if score, false if miss/turnover
      */
     simulateShot(shooter, shotType, isHome) {
-        // Shooting uses d20 + skill modifier vs difficulty
-        // Skill 5: +5 bonus, Skill 1: +1 bonus
-        const skillBonus = shooter.skillLevel;
-        
-        // Position modifiers for shot types
-        const positionMod = {
-            '2pt': { 'PG': 0, 'SG': 1, 'SF': 1, 'PF': 2, 'C': 3 },  // Big men better at 2pt
-            '3pt': { 'PG': 2, 'SG': 3, 'SF': 2, 'PF': 0, 'C': -2 } // Guards better at 3pt
-        };
-        
-        const posMod = positionMod[shotType][shooter.position] || 0;
-        const roll = DiceRoller.rollDie(20);
-        const totalRoll = roll + skillBonus + posMod;
-        
-        // Difficulty thresholds (need to beat to score)
-        // 2pt: DC 12 (~50% for average player), 3pt: DC 15 (~35% for average)
-        const difficulty = shotType === '2pt' ? 12 : 15;
-        const success = totalRoll >= difficulty;
+        const defendingTeam = this.getDefendingTeam();
+        const defender = this.court.getNearestOpponent(shooter, defendingTeam.getActivePlayers()) || 
+                        defendingTeam.getActivePlayers()[0];
 
-        if (success) {
-            const points = shotType === '2pt' ? 2 : 3;
+        // Map skill level to shooting attributes (1-99 scale)
+        const shootingSkill = shooter.shooting || (shooter.skillLevel * 18 + 10);
+        const shooting3pt = shooter.shooting3pt || (shooter.skillLevel * 15 + 5);
+        const defenseSkill = defender.defense || (defender.skillLevel * 18 + 10);
+        const perimeterDef = defender.perimeterDefense || (defender.skillLevel * 16 + 8);
+        const blockingSkill = defender.blocking || (defender.skillLevel * 14);
+
+        let result;
+        if (shotType === '2pt') {
+            result = ActionResolver.resolve2PointerAttempt(
+                { ...shooter, shooting: shootingSkill },
+                { ...defender, defense: defenseSkill, blocking: blockingSkill }
+            );
+        } else {
+            result = ActionResolver.resolve3PointerAttempt(
+                { ...shooter, shooting3pt: shooting3pt },
+                { ...defender, perimeterDefense: perimeterDef, blocking: blockingSkill }
+            );
+        }
+
+        // Check if position can perform this shot
+        if (!result.diceResult.canPerform) {
+            this.logEvent('shot_rejected', 
+                `${shooter.name} cannot shoot ${shotType} from ${shooter.position} position`,
+                result
+            );
+            // Fall back to 2pt for centers trying 3pt
+            if (shotType === '3pt') {
+                return this.simulateShot(shooter, '2pt', isHome);
+            }
+            return false;
+        }
+
+        if (result.blocked) {
+            this.logEvent('shot_blocked', 
+                `${shooter.name}'s shot BLOCKED by ${result.blocker}!`,
+                { shotType, ...result }
+            );
+            this.addNarration('block', { player: shooter.name, defender: result.blocker });
+            return this.simulateRebound(shooter);
+        }
+
+        if (result.made) {
+            const points = result.points;
             shooter.addPoints(points);
             
             if (isHome) {
@@ -268,10 +300,9 @@ class MatchEngine {
 
             this.logEvent('shot_made', 
                 `${shooter.name} makes a ${shotType}! (+${points})`,
-                { shotType, points, roll: totalRoll, difficulty }
+                { shotType, points, successPercent: result.successPercent, dice: result.diceResult }
             );
             
-            // Add narration for the score
             const team = isHome ? this.homeTeam.name : this.awayTeam.name;
             if (shotType === '2pt') {
                 this.addNarration('score2pt', { player: shooter.name, team });
@@ -279,87 +310,89 @@ class MatchEngine {
                 this.addNarration('score3pt', { player: shooter.name, team });
             }
 
-            // Switch possession after score
             this.switchPossession();
             return true;
         } else {
             this.logEvent('shot_missed', 
                 `${shooter.name} misses the ${shotType}`,
-                { shotType, roll: totalRoll, difficulty }
+                { shotType, successPercent: result.successPercent, dice: result.diceResult }
             );
             
-            // Add narration for the miss
             if (shotType === '2pt') {
                 this.addNarration('miss2pt', { player: shooter.name });
             } else {
                 this.addNarration('miss3pt', { player: shooter.name });
             }
 
-            // Rebound attempt
             return this.simulateRebound(shooter);
         }
     }
 
     /**
-     * Simulate rebound after missed shot
+     * Simulate rebound after missed shot using ActionResolver
      */
     simulateRebound(shooter) {
         const defendingTeam = this.getDefendingTeam();
-        const isHome = this.possession === 'home';
+        const possessionTeam = this.getPossessionTeam();
         
-        // Get closest defender for rebound
-        const defenders = defendingTeam.getActivePlayers();
-        let bestRebounder = defenders[0];
-        let bestDistance = Infinity;
-
-        for (let defender of defenders) {
-            const dist = Math.sqrt(
-                Math.pow(defender.x - shooter.x, 2) + 
-                Math.pow(defender.y - shooter.y, 2)
-            );
-            if (dist < bestDistance) {
-                bestDistance = dist;
-                bestRebounder = defender;
+        // Get best rebounders from each team (weighted by position)
+        const getRebound = (players) => {
+            const weights = { 'C': 50, 'PF': 35, 'SF': 10, 'SG': 3, 'PG': 2 };
+            let best = players[0];
+            let bestWeight = 0;
+            for (let p of players) {
+                const weight = (weights[p.position] || 5) + (p.rebounding || p.skillLevel * 10);
+                if (weight > bestWeight) {
+                    bestWeight = weight;
+                    best = p;
+                }
             }
-        }
-
-        // Roll rebound dice
-        const diceMap = {
-            'PG': { q: 1, s: 4 },
-            'SG': { q: 1, s: 4 },
-            'SF': { q: 1, s: 6 },
-            'PF': { q: 2, s: 6 },
-            'C': { q: 3, s: 6 }
+            return best;
         };
 
-        const shooterDice = diceMap[shooter.position];
-        const rebounderDice = diceMap[bestRebounder.position];
+        const offRebounder = getRebound(possessionTeam.getActivePlayers());
+        const defRebounder = getRebound(defendingTeam.getActivePlayers());
 
-        const shooterRoll = DiceRoller.rollMultiple(shooterDice.q, shooterDice.s);
-        const rebounderRoll = DiceRoller.rollMultiple(rebounderDice.q, rebounderDice.s);
+        // Map skill levels to rebounding attributes
+        const offRebounding = offRebounder.rebounding || (offRebounder.skillLevel * 15 + 10);
+        const defRebounding = defRebounder.rebounding || (defRebounder.skillLevel * 15 + 15);
 
-        if (rebounderRoll.total > shooterRoll.total) {
-            // Turnover - defending team gets ball
+        const result = ActionResolver.resolveReboundContest(
+            { ...offRebounder, rebounding: offRebounding },
+            { ...defRebounder, rebounding: defRebounding }
+        );
+
+        if (result.winner === 'defense') {
             this.logEvent('rebound', 
-                `${bestRebounder.name} grabs the rebound!`,
-                { shooterRoll: shooterRoll.total, rebounderRoll: rebounderRoll.total }
+                `${result.winnerPlayer} grabs the defensive rebound!`,
+                { 
+                    offenseTotal: result.offenseTotal, 
+                    defenseTotal: result.defenseTotal,
+                    offenseRoll: result.offenseRoll,
+                    defenseRoll: result.defenseRoll
+                }
             );
             
-            this.court.setBallPossession(bestRebounder);
+            this.addNarration('reboundDefense', { player: result.winnerPlayer });
+            this.court.setBallPossession(defRebounder);
             this.switchPossession();
             return false;
         } else {
-            // Offensive rebound
             this.logEvent('offensive_rebound',
-                `${shooter.name} gets the offensive rebound!`,
-                { shooterRoll: shooterRoll.total, rebounderRoll: rebounderRoll.total }
+                `${result.winnerPlayer} gets the offensive rebound!`,
+                { 
+                    offenseTotal: result.offenseTotal, 
+                    defenseTotal: result.defenseTotal,
+                    offenseRoll: result.offenseRoll,
+                    defenseRoll: result.defenseRoll
+                }
             );
             
-            this.court.setBallPossession(shooter);
+            this.addNarration('reboundOffense', { player: result.winnerPlayer });
+            this.court.setBallPossession(offRebounder);
             return true;
         }
     }
-
     /**
      * Simulate fast break after steal
      * Player gets bonus shot with advantage
@@ -588,7 +621,5 @@ class MatchEngine {
     }
 }
 
-// Export for Node.js/testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = MatchEngine;
-}
+// Export for ES modules
+export { MatchEngine };

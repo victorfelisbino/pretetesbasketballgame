@@ -12,25 +12,25 @@
 
 **Task: Create src/court.js**
 
-- [ ] Define court dimensions (50×30 grid)
-- [ ] Create player position class with (x, y) coordinates
-- [ ] Implement position-based movement speed:
-  - [ ] PG: 10 squares/round (with ball), 13 (without)
-  - [ ] SG: 8 squares/round (with ball), 11 (without)
-  - [ ] SF: 7 squares/round (with ball), 10 (without)
-  - [ ] PF: 6 squares/round (with ball), 8 (without)
-  - [ ] C: 5 squares/round (with ball), 7 (without)
-- [ ] Add boundary detection (can't move off-court)
-- [ ] Create helper functions:
-  - [ ] `canPlayerMove(player, direction, roundsLeft)`
-  - [ ] `getMaxMovement(position, hasBall)`
-  - [ ] `distanceBetween(player1, player2)`
-  - [ ] `getPlayersInZone(x, y, radius)`
-- [ ] Export Court class
+- [x] Define court dimensions (50×30 grid)
+- [x] Create player position class with (x, y) coordinates
+- [x] Implement position-based movement speed:
+  - [x] PG: 10 squares/round (with ball), 13 (without)
+  - [x] SG: 8 squares/round (with ball), 11 (without)
+  - [x] SF: 7 squares/round (with ball), 10 (without)
+  - [x] PF: 6 squares/round (with ball), 8 (without)
+  - [x] C: 5 squares/round (with ball), 7 (without)
+- [x] Add boundary detection (can't move off-court)
+- [x] Create helper functions:
+  - [x] `canPlayerMove(player, direction, roundsLeft)`
+  - [x] `getMaxMovement(position, hasBall)`
+  - [x] `distanceBetween(player1, player2)`
+  - [x] `getPlayersInZone(x, y, radius)`
+- [x] Export Court class
 
-**Status:** ⬜ Not Started  
-**Completion:** __/__/26  
-**Notes:**
+**Status:** ✅ Complete  
+**Completion:** 01/02/26  
+**Notes:** Full court system with player positioning and movement
 
 ---
 
@@ -38,30 +38,30 @@
 
 **Task: Create src/matchEngine.js**
 
-- [ ] Create GameState class with:
-  - [ ] Quarter (1-4)
-  - [ ] Possession counter (≈100 total)
-  - [ ] Current possession (1-5 rounds)
-  - [ ] Score (home/away)
-  - [ ] Ball possession (which team)
-  - [ ] Ball handler (which player)
-- [ ] Implement game loop:
-  - [ ] `simulateRound(gameState, offenseActions, defenseActions)`
-  - [ ] `switchPossession()`
-  - [ ] `endQuarter()`
-  - [ ] `isGameOver()`
-- [ ] Create possession flow:
-  - [ ] Round 1: Offense positioning
-  - [ ] Round 2: Defense positioning
-  - [ ] Round 3-5: Play execution
-- [ ] Event system for narration:
-  - [ ] `gameState.events = []`
-  - [ ] Each action logs event: `{ type, player, result, timestamp }`
-- [ ] Export MatchEngine class
+- [x] Create GameState class with:
+  - [x] Quarter (1-4)
+  - [x] Possession counter (≈100 total)
+  - [x] Current possession (1-5 rounds)
+  - [x] Score (home/away)
+  - [x] Ball possession (which team)
+  - [x] Ball handler (which player)
+- [x] Implement game loop:
+  - [x] `simulateRound(gameState, offenseActions, defenseActions)`
+  - [x] `switchPossession()`
+  - [x] `endQuarter()`
+  - [x] `isGameOver()`
+- [x] Create possession flow:
+  - [x] Round 1: Offense positioning
+  - [x] Round 2: Defense positioning
+  - [x] Round 3-5: Play execution
+- [x] Event system for narration:
+  - [x] `gameState.events = []`
+  - [x] Each action logs event: `{ type, player, result, timestamp }`
+- [x] Export MatchEngine class
 
-**Status:** ⬜ Not Started  
-**Completion:** __/__/26  
-**Notes:**
+**Status:** ✅ Complete  
+**Completion:** 01/02/26  
+**Notes:** Integrated with ActionResolver and DribbleSystem
 
 ---
 
@@ -69,30 +69,30 @@
 
 **Task: Create src/actionResolver.js**
 
-- [ ] Implement YOUR attack vs defense formula:
-  - [ ] `calculateSuccessPercentage(attackerSkill, defenderSkill)`
-  - [ ] Test with examples (A=99, B=51 should be 98%)
-- [ ] Implement position-based dice outcomes:
-  - [ ] `rollForAction(actionType, position)`
-  - [ ] 2-point: C rolls 2d6, PF rolls 1d8, PG rolls 1d4
-  - [ ] 3-point: SG/SF roll 1d6, PG rolls 1d3
-  - [ ] Rebounds: C rolls 3d6, PF rolls 2d6, SF rolls 1d6
-  - [ ] Assists: PG rolls 1d10, SG rolls 1d6
-  - [ ] Steals: PG rolls 1d4+1d6, SG rolls 1d2+1d3
-  - [ ] Blocks: C rolls 1d8+1d10, PF rolls 1d4+1d5
-- [ ] Handle outcomes:
-  - [ ] Success: Add points/assist/rebound
-  - [ ] Failure: Turnover/blocked shot/bad pass
-- [ ] Create ResolveAction class with:
-  - [ ] `resolve2PointerAttempt(attacker, defender)`
-  - [ ] `resolve3PointerAttempt(attacker, defender)`
-  - [ ] `resolveReboundContest(offPlayer, defPlayer)`
-  - [ ] `resolvePassAttempt(passer, receiver, defender)`
-- [ ] Export ActionResolver class
+- [x] Implement YOUR attack vs defense formula:
+  - [x] `calculateSuccessPercentage(attackerSkill, defenderSkill)`
+  - [x] Test with examples (A=99, B=51 should be 98%)
+- [x] Implement position-based dice outcomes:
+  - [x] `rollForAction(actionType, position)`
+  - [x] 2-point: C rolls 2d6, PF rolls 1d8, PG rolls 1d4
+  - [x] 3-point: SG/SF roll 1d6, PG rolls 1d3
+  - [x] Rebounds: C rolls 3d6, PF rolls 2d6, SF rolls 1d6
+  - [x] Assists: PG rolls 1d10, SG rolls 1d6
+  - [x] Steals: PG rolls 1d4+1d6, SG rolls 1d2+1d3
+  - [x] Blocks: C rolls 1d8+1d10, PF rolls 1d4+1d5
+- [x] Handle outcomes:
+  - [x] Success: Add points/assist/rebound
+  - [x] Failure: Turnover/blocked shot/bad pass
+- [x] Create ResolveAction class with:
+  - [x] `resolve2PointerAttempt(attacker, defender)`
+  - [x] `resolve3PointerAttempt(attacker, defender)`
+  - [x] `resolveReboundContest(offPlayer, defPlayer)`
+  - [x] `resolvePassAttempt(passer, receiver, defender)`
+- [x] Export ActionResolver class
 
-**Status:** ⬜ Not Started  
-**Completion:** __/__/26  
-**Notes:**
+**Status:** ✅ Complete  
+**Completion:** 01/02/26  
+**Notes:** Full position-based dice system with tests passing
 
 ---
 
@@ -100,27 +100,27 @@
 
 **Task: Create src/dribbleSystem.js**
 
-- [ ] Implement d20 dribble contest:
-  - [ ] `calculateDribbleSuccess(dribbleAttribute, stealAttribute)`
-  - [ ] Formula: `difference = dribble - steal_marking`
-  - [ ] `threshold = 20 - difference`
-  - [ ] `roll >= threshold to succeed`
-- [ ] Test cases:
-  - [ ] Dribble 16 vs Steal 2 → threshold 6 → 70% ✅
-  - [ ] Dribble 10 vs Steal 10 → threshold 20 → 5% (tied)
-  - [ ] Dribble 5 vs Steal 15 → threshold 30 → impossible (0%) ✅
-- [ ] Handle outcomes:
-  - [ ] Success: Player advances with ball
-  - [ ] Failure: Turnover (defender steals)
-- [ ] Integrate into MatchEngine:
-  - [ ] Call dribbleSystem on dribble actions
-  - [ ] Apply success/failure results
-- [ ] Create DribbleSystem class
-- [ ] Export DribbleSystem class
+- [x] Implement d20 dribble contest:
+  - [x] `calculateDribbleSuccess(dribbleAttribute, stealAttribute)`
+  - [x] Formula: `difference = dribble - steal_marking`
+  - [x] `threshold = 20 - difference`
+  - [x] `roll >= threshold to succeed`
+- [x] Test cases:
+  - [x] Dribble 16 vs Steal 2 → threshold 6 → 75% ✅
+  - [x] Dribble 10 vs Steal 10 → threshold 20 → 5% (tied)
+  - [x] Dribble 5 vs Steal 15 → threshold 30 → impossible (0%) ✅
+- [x] Handle outcomes:
+  - [x] Success: Player advances with ball
+  - [x] Failure: Turnover (defender steals)
+- [x] Integrate into MatchEngine:
+  - [x] Call dribbleSystem on dribble actions
+  - [x] Apply success/failure results
+- [x] Create DribbleSystem class
+- [x] Export DribbleSystem class
 
-**Status:** ⬜ Not Started  
-**Completion:** __/__/26  
-**Notes:**
+**Status:** ✅ Complete  
+**Completion:** 01/02/26  
+**Notes:** D20 system with all test cases passing
 
 ---
 
@@ -128,30 +128,30 @@
 
 **Task: Create src/narration.js**
 
-- [ ] Create narration templates (Portuguese):
-  - [ ] Possession start: "Time A na reposição..."
-  - [ ] Dribble: "{jogador} avança com a bola!"
-  - [ ] Pass: "Passa para {alvo}!"
-  - [ ] Shot attempt: "Tentativa de {2|3} pontos..."
-  - [ ] Made basket: "CESTA! {time} {score}!"
-  - [ ] Missed: "ERROU!"
-  - [ ] Rebound: "REBOTE! {jogador} pega!"
-  - [ ] Steal: "ROUBO! {defensor} recupera!"
-  - [ ] Block: "TOCO! Defesa espetacular!"
-  - [ ] Turnover: "BOLA PERDIDA!"
-- [ ] Create NarrationEngine class:
-  - [ ] `generateNarration(event, gameState)`
-  - [ ] Returns formatted string: "⏱ 8:32 - M. Santos avança com a bola!"
-- [ ] Handle randomization:
-  - [ ] Multiple templates per action (avoid repetition)
-  - [ ] Random selection from array
-- [ ] Time formatting:
-  - [ ] `formatTime(round)` → "8:32" format
-- [ ] Export NarrationEngine class
+- [x] Create narration templates (Portuguese):
+  - [x] Possession start: "Time A na reposição..."
+  - [x] Dribble: "{jogador} avança com a bola!"
+  - [x] Pass: "Passa para {alvo}!"
+  - [x] Shot attempt: "Tentativa de {2|3} pontos..."
+  - [x] Made basket: "CESTA! {time} {score}!"
+  - [x] Missed: "ERROU!"
+  - [x] Rebound: "REBOTE! {jogador} pega!"
+  - [x] Steal: "ROUBO! {defensor} recupera!"
+  - [x] Block: "TOCO! Defesa espetacular!"
+  - [x] Turnover: "BOLA PERDIDA!"
+- [x] Create NarrationEngine class:
+  - [x] `generateNarration(event, gameState)`
+  - [x] Returns formatted string: "⏱ 8:32 - M. Santos avança com a bola!"
+- [x] Handle randomization:
+  - [x] Multiple templates per action (avoid repetition)
+  - [x] Random selection from array
+- [x] Time formatting:
+  - [x] `formatTime(round)` → "8:32" format
+- [x] Export NarrationEngine class
 
-**Status:** ⬜ Not Started  
-**Completion:** __/__/26  
-**Notes:**
+**Status:** ✅ Complete  
+**Completion:** 01/02/26  
+**Notes:** Full bilingual narration (PT/EN) with blocks, rebounds, and all events
 
 ---
 
@@ -159,34 +159,34 @@
 
 **Task: Create src/ui/MatchView.jsx**
 
-- [ ] Create React component:
-  - [ ] Display court canvas (500px wide min, mobile responsive)
-  - [ ] Show player positions on court
-  - [ ] Display ball position
-  - [ ] Update in real-time
-- [ ] Create scoreboard:
-  - [ ] Team A score & name
-  - [ ] Team B score & name
-  - [ ] Quarter display (Q1-Q4)
-  - [ ] Possession counter
-- [ ] Create narration log:
-  - [ ] Scrollable list of recent events
-  - [ ] Max 10 visible lines
-  - [ ] Auto-scroll to latest
-  - [ ] Timestamp for each event
-- [ ] Create control buttons:
-  - [ ] "Start Match"
-  - [ ] "Pause" (for testing)
-  - [ ] "Speed Up" (2x, 4x simulation)
-- [ ] Mobile responsive:
-  - [ ] Works at 320px width
-  - [ ] Touch-friendly buttons
-  - [ ] Readable on phone screen
-- [ ] Export MatchView component
+- [x] Create React component:
+  - [x] Display court canvas (500px wide min, mobile responsive)
+  - [x] Show player positions on court
+  - [x] Display ball position
+  - [x] Update in real-time
+- [x] Create scoreboard:
+  - [x] Team A score & name
+  - [x] Team B score & name
+  - [x] Quarter display (Q1-Q4)
+  - [x] Possession counter
+- [x] Create narration log:
+  - [x] Scrollable list of recent events
+  - [x] Max 10 visible lines
+  - [x] Auto-scroll to latest
+  - [x] Timestamp for each event
+- [x] Create control buttons:
+  - [x] "Start Match"
+  - [x] "Pause" (for testing)
+  - [x] "Speed Up" (2x, 4x simulation)
+- [x] Mobile responsive:
+  - [x] Works at 320px width
+  - [x] Touch-friendly buttons
+  - [x] Readable on phone screen
+- [x] Export MatchView component
 
-**Status:** ⬜ Not Started  
-**Completion:** __/__/26  
-**Notes:**
+**Status:** ✅ Complete  
+**Completion:** 01/02/26  
+**Notes:** Full UI with court visualization, fouls, free throws, and play types
 
 ---
 
@@ -194,20 +194,20 @@
 
 **Task: Create src/gameController.js & wire everything**
 
-- [ ] Create GameController class:
-  - [ ] Initialize teams (test rosters)
-  - [ ] Initialize match engine
-  - [ ] Run simulation loop
-  - [ ] Collect narration events
-  - [ ] Return final match result
-- [ ] Wire to React:
-  - [ ] GameController state in MatchView
-  - [ ] Update UI on each round
-  - [ ] Display narration in real-time
-- [ ] Run first test match:
-  - [ ] Team A (random 5 players) vs Team B (random 5 players)
-  - [ ] Simulate 4 quarters
-  - [ ] Check score is reasonable (80-120 ppg)
+- [x] Create GameController class:
+  - [x] Initialize teams (test rosters)
+  - [x] Initialize match engine
+  - [x] Run simulation loop
+  - [x] Collect narration events
+  - [x] Return final match result
+- [x] Wire to React:
+  - [x] GameController state in MatchView
+  - [x] Update UI on each round
+  - [x] Display narration in real-time
+- [x] Run first test match:
+  - [x] Team A (random 5 players) vs Team B (random 5 players)
+  - [x] Simulate 4 quarters
+  - [x] Check score is reasonable (80-120 ppg)
   - [ ] Verify all events logged
   - [ ] Check narration displays correctly
 - [ ] Debug & fix:

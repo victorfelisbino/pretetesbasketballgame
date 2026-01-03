@@ -319,24 +319,142 @@
     <section id="gameplay">
         <div class="container">
             <h2>How It Works</h2>
-            <div style="max-width: 800px; margin: 0 auto; background: #f5f5f5; padding: 40px; border-radius: 10px;">
-                <h3 style="color: #ff6b35; margin-bottom: 20px;">Match Simulation</h3>
+            
+            <!-- Match Simulation Overview -->
+            <div style="max-width: 900px; margin: 0 auto 40px; background: #f5f5f5; padding: 40px; border-radius: 10px;">
+                <h3 style="color: #ff6b35; margin-bottom: 20px;">🏀 Match Simulation</h3>
                 <ol style="line-height: 2; color: #666; margin-left: 20px;">
-                    <li><strong>Build Your Team:</strong> Assemble 12 players with unique skills and positions</li>
-                    <li><strong>Simulate Match:</strong> Our engine runs 100 rounds of realistic basketball action</li>
-                    <li><strong>Fast Breaks:</strong> Steal the ball and trigger explosive scoring opportunities</li>
-                    <li><strong>Strategic Shooting:</strong> Guards take 3s from mid-range, big men dominate the paint</li>
-                    <li><strong>See Results:</strong> Realistic NBA-style scores (80-110 PPG) with bilingual narration</li>
+                    <li><strong>Build Your Team:</strong> Assemble 5 starters with positions (PG, SG, SF, PF, C) and skill levels (1-5 stars)</li>
+                    <li><strong>4 Quarters:</strong> Each quarter has 25 rounds of action (100 total rounds per game)</li>
+                    <li><strong>Real Game Clock:</strong> 12-minute quarters with countdown timer and possession tracking</li>
+                    <li><strong>Fouls & Bonus:</strong> Track team fouls per quarter - enter bonus after 4 fouls for free throws</li>
+                    <li><strong>Play Variety:</strong> Pick & roll, alley-oops, post-ups, fadeaways, dunks, and layups</li>
                 </ol>
+            </div>
 
-                <h3 style="color: #ff6b35; margin: 30px 0 20px 0;">Probability System</h3>
-                <p style="color: #666; margin-bottom: 15px;">Our D20 system ensures balanced, skill-based gameplay:</p>
-                <ul style="color: #666; margin-left: 40px; line-height: 2;">
-                    <li><strong>Shooting:</strong> d20 + skill + position modifier vs DC (12 for 2pt, 15 for 3pt)</li>
-                    <li><strong>Steals:</strong> 25% attempt rate within 5 squares, triggers fast breaks</li>
-                    <li><strong>Position Bonuses:</strong> Guards +3 for 3pt, Centers +3 for 2pt</li>
-                    <li><strong>Fast Break Bonus:</strong> +3 to shooting after successful steals</li>
-                </ul>
+            <!-- Dice Systems -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto;">
+                
+                <!-- Action Resolver System -->
+                <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 10px; color: white;">
+                    <h3 style="color: #ff6b35; margin-bottom: 20px;">🎲 Action Resolver System</h3>
+                    <p style="margin-bottom: 15px; color: #ccc;">Position-based dice determine action outcomes:</p>
+                    
+                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">2-Point Shooting</h4>
+                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
+                        <li>Center (C): 2d6 dice</li>
+                        <li>Power Forward (PF): 1d8 dice</li>
+                        <li>SF/SG/PG: 1d4 dice</li>
+                    </ul>
+                    
+                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">3-Point Shooting</h4>
+                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
+                        <li>SG/SF: 1d6 dice</li>
+                        <li>PG: 1d3 dice</li>
+                        <li>PF/C: ❌ Cannot shoot 3s</li>
+                    </ul>
+                    
+                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Rebounds</h4>
+                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
+                        <li>Center: 3d6 dice</li>
+                        <li>Power Forward: 2d6 dice</li>
+                        <li>Small Forward: 1d6 dice</li>
+                    </ul>
+                    
+                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Blocks</h4>
+                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
+                        <li>Center: 1d8 + 1d10 dice</li>
+                        <li>Power Forward: 1d4 + 1d5 dice</li>
+                    </ul>
+                </div>
+
+                <!-- D20 Dribble System -->
+                <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 10px; color: white;">
+                    <h3 style="color: #ff6b35; margin-bottom: 20px;">🎯 D20 Dribble System</h3>
+                    <p style="margin-bottom: 15px; color: #ccc;">Dribble vs steal contests use a d20 mechanic:</p>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <code style="color: #ff6b35; font-size: 1.1rem;">threshold = 20 - (DRIBBLE - STEAL)</code>
+                        <p style="color: #999; margin-top: 10px; font-size: 0.9rem;">Roll d20 ≥ threshold = SUCCESS</p>
+                    </div>
+                    
+                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Example Matchups</h4>
+                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
+                        <li>Dribble 16 vs Steal 2 → threshold 6 → <span style="color: #4CAF50;">75% success</span></li>
+                        <li>Dribble 10 vs Steal 10 → threshold 20 → <span style="color: #ff9800;">5% success</span></li>
+                        <li>Dribble 5 vs Steal 15 → threshold 30+ → <span style="color: #f44336;">0% impossible</span></li>
+                    </ul>
+                    
+                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Success Formula</h4>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+                        <p style="color: #ccc; line-height: 1.8;">
+                            <strong>If A &gt; B:</strong> 100 - (2×B - A) / 2<br>
+                            <strong>If A &lt; B:</strong> (2×A - B) / 2<br>
+                            <strong>If A = B:</strong> 50%
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Play Types -->
+            <div style="max-width: 900px; margin: 40px auto 0; background: #f5f5f5; padding: 40px; border-radius: 10px;">
+                <h3 style="color: #ff6b35; margin-bottom: 20px;">🎬 Play Types & Actions</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <span style="font-size: 2rem;">🔄</span>
+                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Pick & Roll</h4>
+                        <p style="color: #666; font-size: 0.9rem;">Use screens for open shots</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <span style="font-size: 2rem;">🔥</span>
+                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Alley-Oop</h4>
+                        <p style="color: #666; font-size: 0.9rem;">Lob passes for dunks</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <span style="font-size: 2rem;">💪</span>
+                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Post Up</h4>
+                        <p style="color: #666; font-size: 0.9rem;">Big men dominate the paint</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <span style="font-size: 2rem;">🎨</span>
+                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Fadeaway</h4>
+                        <p style="color: #666; font-size: 0.9rem;">Elite players only</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <span style="font-size: 2rem;">💥</span>
+                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Dunks</h4>
+                        <p style="color: #666; font-size: 0.9rem;">High percentage finishes</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                        <span style="font-size: 2rem;">⚡</span>
+                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Fast Break</h4>
+                        <p style="color: #666; font-size: 0.9rem;">+3 bonus after steals</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fouls & Free Throws -->
+            <div style="max-width: 900px; margin: 40px auto 0; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 40px; border-radius: 10px;">
+                <h3 style="color: #ff6b35; margin-bottom: 20px;">⚠️ Fouls & Free Throws</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+                    <div>
+                        <h4 style="color: #e65100; margin-bottom: 10px;">Foul System</h4>
+                        <ul style="color: #666; line-height: 2;">
+                            <li>15% chance of foul on shot attempts</li>
+                            <li>8% chance on fast break attempts</li>
+                            <li>Team bonus after 4 quarter fouls</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="color: #e65100; margin-bottom: 10px;">Free Throws</h4>
+                        <ul style="color: #666; line-height: 2;">
+                            <li>2 FTs for fouled 2-point shot</li>
+                            <li>3 FTs for fouled 3-point shot</li>
+                            <li>1 FT for "And-One" plays</li>
+                            <li>d20 + skill ≥ 10 to make</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -401,16 +519,37 @@
                     <p>Phases Complete</p>
                 </div>
                 <div class="stat-box">
-                    <div class="number">6,000+</div>
+                    <div class="number">8,000+</div>
                     <p>Lines of Code</p>
                 </div>
                 <div class="stat-box">
-                    <div class="number">30+</div>
-                    <p>Components</p>
+                    <div class="number">15+</div>
+                    <p>Game Systems</p>
                 </div>
                 <div class="stat-box">
-                    <div class="number">100</div>
-                    <p>Rounds per Match</p>
+                    <div class="number">2</div>
+                    <p>Languages (PT/EN)</p>
+                </div>
+            </div>
+            
+            <!-- Core Systems List -->
+            <div style="max-width: 900px; margin: 40px auto 0; text-align: center;">
+                <h3 style="color: #ff6b35; margin-bottom: 20px;">✅ Core Systems Implemented</h3>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Court Grid (50×30)</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Match Engine</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Action Resolver</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">D20 Dribble System</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Narration Engine</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Position-Based Dice</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Foul Tracking</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Free Throws</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Play Types</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">League System</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Player Stats</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">SVG Court</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">PWA Support</span>
+                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Guest Mode</span>
                 </div>
             </div>
         </div>

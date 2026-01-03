@@ -25,7 +25,7 @@ export default function BasketballCourt({
 
   // Get player positions based on formation
   const getPlayerPositions = (team, isHome) => {
-    const positions = {
+    const positionCoords = {
       PG: isHome ? { x: 250, y: 250 } : { x: 690, y: 250 },
       SG: isHome ? { x: 180, y: 150 } : { x: 760, y: 150 },
       SF: isHome ? { x: 180, y: 350 } : { x: 760, y: 350 },
@@ -35,11 +35,19 @@ export default function BasketballCourt({
     
     if (!team?.players) return [];
     
-    return team.players.map(player => ({
-      ...player,
-      position: positions[player.position] || positions.PG,
-      color: isHome ? homeColor : awayColor
-    }));
+    return team.players.map(player => {
+      // Get position string - handle both string and object cases
+      const posStr = typeof player.position === 'string' 
+        ? player.position 
+        : (player.positionLabel || 'PG');
+      
+      return {
+        name: player.name,
+        positionLabel: posStr,
+        coords: positionCoords[posStr] || positionCoords.PG,
+        color: isHome ? homeColor : awayColor
+      };
+    });
   };
 
   const homePlayers = getPlayerPositions(homeTeam, true);
@@ -190,8 +198,8 @@ export default function BasketballCourt({
           <g key={`home-${index}`} className="player-marker">
             {/* Player circle */}
             <circle
-              cx={player.position.x}
-              cy={player.position.y}
+              cx={player.coords.x}
+              cy={player.coords.y}
               r="22"
               fill={player.color}
               stroke="#fff"
@@ -200,19 +208,19 @@ export default function BasketballCourt({
             />
             {/* Position text */}
             <text
-              x={player.position.x}
-              y={player.position.y + 5}
+              x={player.coords.x}
+              y={player.coords.y + 5}
               textAnchor="middle"
               fill="#1a1a2e"
               fontSize="12"
               fontWeight="bold"
             >
-              {player.position}
+              {player.positionLabel}
             </text>
             {/* Player name (on hover - simplified to always show) */}
             <text
-              x={player.position.x}
-              y={player.position.y + 38}
+              x={player.coords.x}
+              y={player.coords.y + 38}
               textAnchor="middle"
               fill="#fff"
               fontSize="10"
@@ -227,8 +235,8 @@ export default function BasketballCourt({
         {awayPlayers.map((player, index) => (
           <g key={`away-${index}`} className="player-marker">
             <circle
-              cx={player.position.x}
-              cy={player.position.y}
+              cx={player.coords.x}
+              cy={player.coords.y}
               r="22"
               fill={player.color}
               stroke="#fff"
@@ -236,18 +244,18 @@ export default function BasketballCourt({
               className={possession === 'away' ? 'pulse' : ''}
             />
             <text
-              x={player.position.x}
-              y={player.position.y + 5}
+              x={player.coords.x}
+              y={player.coords.y + 5}
               textAnchor="middle"
               fill="#1a1a2e"
               fontSize="12"
               fontWeight="bold"
             >
-              {player.position}
+              {player.positionLabel}
             </text>
             <text
-              x={player.position.x}
-              y={player.position.y + 38}
+              x={player.coords.x}
+              y={player.coords.y + 38}
               textAnchor="middle"
               fill="#fff"
               fontSize="10"

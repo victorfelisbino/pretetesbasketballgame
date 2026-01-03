@@ -101,6 +101,57 @@ const templates = {
             "Tentativa de roubo de {defender}... não conseguiu!"
         ],
 
+        // Blocks
+        block: [
+            "🚫 TOCO! {defender} manda a bola de {player} pra arquibancada!",
+            "🚫 BLOQUEIO ESPETACULAR! {defender} rejeita {player}!",
+            "🚫 NÃO HOJE! {defender} bloqueia o arremesso de {player}!",
+            "🚫 QUE DEFESA! {defender} com um tapão em {player}!"
+        ],
+
+        // Rebounds
+        reboundDefense: [
+            "📥 REBOTE DEFENSIVO! {player} pega a bola!",
+            "📥 {player} sobe e agarra o rebote!",
+            "📥 Rebote para {player}! Posse assegurada!",
+            "📥 {player} domina as tabelas! Rebote defensivo!"
+        ],
+        reboundOffense: [
+            "📤 REBOTE OFENSIVO! {player} mantém a posse viva!",
+            "📤 SEGUNDA CHANCE! {player} pega o rebote!",
+            "📤 {player} luta pelo rebote e consegue!",
+            "📤 Esforço de {player}! Rebote ofensivo!"
+        ],
+
+        // Dribble
+        dribble: [
+            "🏃 {player} avança driblando!",
+            "🏃 {player} conduz a bola com habilidade!",
+            "🏃 Bela condução de {player}!",
+            "🏃 {player} cruza a marcação no drible!"
+        ],
+
+        // Pass
+        pass: [
+            "➡️ {passer} passa para {receiver}!",
+            "➡️ Bola de {passer} encontra {receiver}!",
+            "➡️ Belo passe de {passer} para {receiver}!",
+            "➡️ Assistência de {passer}! {receiver} recebe!"
+        ],
+        assist: [
+            "🎯 ASSISTÊNCIA! {passer} deixa {player} na cara do gol!",
+            "🎯 Belo passe de {passer}! {player} converte!",
+            "🎯 {passer} com a visão de jogo! Assistência para {player}!"
+        ],
+
+        // Turnover
+        turnover: [
+            "❌ BOLA PERDIDA! {player} entrega a posse!",
+            "❌ Erro de {player}! Turnover!",
+            "❌ {player} perde a bola! Posse muda de lado!",
+            "❌ Passe errado de {player}! Bola para o adversário!"
+        ],
+
         // Fast break
         fastBreakStart: [
             "⚡ CONTRA-ATAQUE! {team} sai em velocidade!",
@@ -229,6 +280,57 @@ const templates = {
             "{defender} reaches but {attacker} protects the ball.",
             "{attacker} escapes {defender}'s pressure.",
             "Steal attempt by {defender}... unsuccessful!"
+        ],
+
+        // Blocks
+        block: [
+            "🚫 BLOCKED! {defender} swats {player}'s shot away!",
+            "🚫 REJECTION! {defender} denies {player}!",
+            "🚫 NOT IN MY HOUSE! {defender} blocks {player}!",
+            "🚫 GET THAT OUT OF HERE! {defender} with the block on {player}!"
+        ],
+
+        // Rebounds
+        reboundDefense: [
+            "📥 DEFENSIVE REBOUND! {player} grabs the board!",
+            "📥 {player} goes up and secures the rebound!",
+            "📥 Rebound to {player}! Possession secured!",
+            "📥 {player} controls the glass! Defensive board!"
+        ],
+        reboundOffense: [
+            "📤 OFFENSIVE REBOUND! {player} keeps the possession alive!",
+            "📤 SECOND CHANCE! {player} grabs the board!",
+            "📤 {player} fights for the rebound and gets it!",
+            "📤 Hustle play by {player}! Offensive rebound!"
+        ],
+
+        // Dribble
+        dribble: [
+            "🏃 {player} advances with the dribble!",
+            "🏃 {player} handles the ball with skill!",
+            "🏃 Nice ball handling by {player}!",
+            "🏃 {player} crosses over and beats the defender!"
+        ],
+
+        // Pass
+        pass: [
+            "➡️ {passer} passes to {receiver}!",
+            "➡️ Ball from {passer} finds {receiver}!",
+            "➡️ Great pass from {passer} to {receiver}!",
+            "➡️ {passer} feeds {receiver}!"
+        ],
+        assist: [
+            "🎯 ASSIST! {passer} sets up {player} perfectly!",
+            "🎯 Beautiful pass from {passer}! {player} converts!",
+            "🎯 {passer} with the court vision! Assist to {player}!"
+        ],
+
+        // Turnover
+        turnover: [
+            "❌ TURNOVER! {player} loses the ball!",
+            "❌ Mistake by {player}! Turnover!",
+            "❌ {player} gives it away! Possession changes!",
+            "❌ Bad pass by {player}! Ball goes the other way!"
         ],
 
         // Fast break

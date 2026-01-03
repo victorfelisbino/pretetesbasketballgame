@@ -8,6 +8,21 @@ import PlayerStatsView from './ui/PlayerStatsView.jsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { recordLocalMatchResult, getLocalLeague } from './league/localLeague.js';
 
+const translations = {
+  pt: {
+    welcomeTitle: 'Escolha o Modo de Jogo',
+    quickMatch: 'Partida Rápida',
+    leagueMode: 'Modo Liga',
+    playerStats: 'Estatísticas'
+  },
+  en: {
+    welcomeTitle: 'Choose Game Mode',
+    quickMatch: 'Quick Match',
+    leagueMode: 'League Mode',
+    playerStats: 'Statistics'
+  }
+};
+
 function GameApp() {
   // Game states: 'menu', 'setup', 'playing', 'finished', 'league-hub', 'league-view', 'stats'
   const [gameState, setGameState] = useState('menu');
@@ -15,7 +30,8 @@ function GameApp() {
   const [awayTeam, setAwayTeam] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
   const [language, setLanguage] = useState('pt');
-  const [guestMode, setGuestMode] = useState(false);
+  // Default to guest mode since Firebase isn't configured yet
+  const [guestMode, setGuestMode] = useState(true);
   const [userTeam, setUserTeam] = useState(null);
   const [currentLeagueId, setCurrentLeagueId] = useState(null);
   const [currentMatchInfo, setCurrentMatchInfo] = useState(null);
@@ -194,7 +210,7 @@ function GameApp() {
         {gameState === 'setup' && (
           <TeamSetup 
             onStartMatch={handleStartMatch} 
-            onTeamCreated={handleTeamCreated}
+            onBack={() => setGameState('menu')}
             language={language} 
           />
         )}
@@ -260,21 +276,6 @@ function GameApp() {
     </div>
   );
 }
-
-const translations = {
-  pt: {
-    welcomeTitle: 'Escolha o Modo de Jogo',
-    quickMatch: 'Partida Rápida',
-    leagueMode: 'Modo Liga',
-    playerStats: 'Estatísticas'
-  },
-  en: {
-    welcomeTitle: 'Choose Game Mode',
-    quickMatch: 'Quick Match',
-    leagueMode: 'League Mode',
-    playerStats: 'Statistics'
-  }
-};
 
 function App() {
   return (
