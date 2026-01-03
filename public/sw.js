@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pretetes-basketball-v1';
+const CACHE_NAME = 'quadra-legacy-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

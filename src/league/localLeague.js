@@ -4,7 +4,7 @@
  */
 
 // Storage key
-const STORAGE_KEY = 'pretetes_leagues';
+const STORAGE_KEY = 'quadra_legacy_leagues';
 
 /**
  * Generate unique ID

@@ -3,7 +3,7 @@
  * Tracks career stats for players locally
  */
 
-const STORAGE_KEY = 'pretetes_player_stats';
+const STORAGE_KEY = 'quadra_legacy_player_stats';
 
 /**
  * Generate unique ID
