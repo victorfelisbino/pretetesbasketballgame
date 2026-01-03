@@ -3,631 +3,1170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Pretetê's Basketball - A revolutionary basketball manager game inspired by Elifoot. Coming April 2026 to iOS, Android, and Web.">
-    <meta name="keywords" content="basketball game, manager game, Elifoot, sports simulation, mobile game">
-    <meta property="og:title" content="Pretetê's Basketball - Basketball Manager Game">
-    <meta property="og:description" content="The Elifoot of basketball. Manage your team, simulate matches, and compete in leagues. Coming April 2026.">
+    <meta name="description" content="Pretetê's Basketball - The ultimate basketball manager game. Build your dream team, dominate leagues, and become a legend. Coming April 2026!">
+    <meta name="keywords" content="basketball game, manager game, sports simulation, mobile game, NBA, basketball manager">
+    <meta property="og:title" content="Pretetê's Basketball - Build Your Dynasty">
+    <meta property="og:description" content="The Elifoot of basketball. Manage your team, simulate matches, and compete in leagues. Coming April 2026 to iOS, Android & Web.">
     <meta property="og:type" content="website">
-    <title>Pretetê's Basketball - Manager Game</title>
+    <meta property="og:image" content="https://victorfelisbino.github.io/pretetesbasketballgame/preview.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>Pretetê's Basketball - Build Your Dynasty 🏀</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --primary: #ff6b35;
+            --primary-dark: #e55a2b;
+            --secondary: #4ec9b0;
+            --dark: #0a0a1a;
+            --darker: #050510;
+            --light: #ffffff;
+            --gray: #8892a0;
+            --gradient-fire: linear-gradient(135deg, #ff6b35 0%, #ff9a5a 50%, #ffd93d 100%);
+            --gradient-dark: linear-gradient(180deg, #0a0a1a 0%, #1a1a3a 100%);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--darker);
+            color: var(--light);
             line-height: 1.6;
-            color: #333;
+            overflow-x: hidden;
         }
 
-        header {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: white;
-            padding: 60px 20px;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        header p {
-            font-size: 1.3rem;
-            opacity: 0.95;
-        }
-
-        nav {
-            background: #222;
-            padding: 15px 0;
-            position: sticky;
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
             top: 0;
-            z-index: 100;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--gradient-dark);
         }
 
-        nav ul {
-            list-style: none;
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 107, 53, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(78, 201, 176, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 107, 53, 0.08) 0%, transparent 40%);
+            animation: pulse-bg 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-bg {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Floating Basketball Elements */
+        .floating-balls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .ball {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.15;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .ball:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+        .ball:nth-child(2) { left: 80%; top: 60%; animation-delay: 2s; }
+        .ball:nth-child(3) { left: 30%; top: 70%; animation-delay: 4s; }
+        .ball:nth-child(4) { left: 70%; top: 30%; animation-delay: 6s; }
+        .ball:nth-child(5) { left: 50%; top: 85%; animation-delay: 8s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--light);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-cta {
+            background: var(--gradient-fire);
+            color: var(--dark) !important;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700 !important;
+        }
+
+        .nav-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 20px 80px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.4);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 53, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 107, 53, 0.6); }
+        }
+
+        .hero h1 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: clamp(3.5rem, 10vw, 7rem);
+            line-height: 1;
+            margin-bottom: 20px;
+            background: var(--gradient-fire);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: title-appear 1s ease-out;
+        }
+
+        @keyframes title-appear {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            color: var(--gray);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-subtitle strong {
+            color: var(--light);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 30px;
+            margin-bottom: 60px;
         }
 
-        nav a {
-            color: white;
+        .btn {
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
             text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            cursor: pointer;
         }
 
-        nav a:hover {
-            color: #ff6b35;
+        .btn-primary {
+            background: var(--gradient-fire);
+            color: var(--dark);
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.4);
         }
 
-        .container {
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(255, 107, 53, 0.6);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--light);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Platform Icons */
+        .platforms {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            opacity: 0.6;
+        }
+
+        .platform {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .platform-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        /* Game Preview Section */
+        .preview-section {
+            padding: 100px 20px;
+            position: relative;
+        }
+
+        .preview-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
         }
 
-        section {
-            padding: 80px 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        h2 {
-            color: #ff6b35;
-            font-size: 2.5rem;
-            margin-bottom: 40px;
+        .section-header {
             text-align: center;
+            margin-bottom: 60px;
         }
 
-        .hero-features {
+        .section-label {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', cursive;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: 20px;
+        }
+
+        .section-desc {
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+        }
+
+        /* Game Screenshots Mock */
+        .game-showcase {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            margin: 40px 0;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            perspective: 1000px;
+        }
+
+        .showcase-card {
+            background: linear-gradient(145deg, #1a1a3a 0%, #0d0d20 100%);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .showcase-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-fire);
+        }
+
+        .showcase-card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            border-color: var(--primary);
+            box-shadow: 0 30px 60px rgba(255, 107, 53, 0.2);
+        }
+
+        .showcase-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .showcase-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+
+        .showcase-card p {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Features Grid */
+        .features-section {
+            padding: 100px 20px;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 107, 53, 0.03) 50%, transparent 100%);
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
         }
 
         .feature-card {
-            background: #f5f5f5;
+            background: rgba(26, 26, 58, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
             padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
         }
 
         .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: rgba(255, 107, 53, 0.3);
+            transform: translateY(-5px);
         }
 
-        .feature-card h3 {
-            color: #ff6b35;
+        .feature-emoji {
+            font-size: 2.5rem;
             margin-bottom: 15px;
-            font-size: 1.5rem;
+        }
+
+        .feature-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--light);
         }
 
         .feature-card p {
-            color: #666;
-            line-height: 1.8;
+            color: var(--gray);
+            font-size: 0.9rem;
         }
 
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: white;
-            padding: 15px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
+        /* Stats Section */
+        .stats-section {
+            padding: 80px 20px;
         }
 
-        .cta-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
-        }
-
-        .roadmap {
+        .stats-grid {
+            max-width: 1000px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin: 40px 0;
-        }
-
-        .phase-box {
-            background: white;
-            border-left: 5px solid #ff6b35;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-radius: 5px;
-        }
-
-        .phase-box h3 {
-            color: #ff6b35;
-            margin-bottom: 15px;
-        }
-
-        .phase-box ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .phase-box li {
-            padding: 8px 0;
-            padding-left: 20px;
-            position: relative;
-            color: #666;
-        }
-
-        .phase-box li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #ff6b35;
-            font-weight: bold;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
-            margin: 40px 0;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
             text-align: center;
         }
 
-        .stat-box {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .stat-item {
+            padding: 20px;
         }
 
-        .stat-box .number {
-            font-size: 2.5rem;
-            color: #ff6b35;
-            font-weight: bold;
+        .stat-number {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 4rem;
+            background: var(--gradient-fire);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
         }
 
-        .stat-box p {
-            color: #666;
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.95rem;
             margin-top: 10px;
         }
 
-        footer {
-            background: #222;
-            color: white;
-            text-align: center;
-            padding: 40px 20px;
+        /* Mechanics Section */
+        .mechanics-section {
+            padding: 100px 20px;
         }
 
-        footer a {
-            color: #ff6b35;
-            text-decoration: none;
+        .mechanics-container {
+            max-width: 1100px;
+            margin: 0 auto;
         }
 
-        footer a:hover {
-            text-decoration: underline;
+        .mechanics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
         }
 
-        .github-banner {
-            background: #333;
-            padding: 20px;
-            text-align: center;
-            color: white;
+        .mechanic-card {
+            background: linear-gradient(145deg, #12122a 0%, #0a0a1a 100%);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(78, 201, 176, 0.2);
         }
 
-        .github-banner a {
-            color: #ff6b35;
-            text-decoration: none;
+        .mechanic-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mechanic-formula {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin: 20px 0;
+        }
+
+        .mechanic-list {
+            list-style: none;
+        }
+
+        .mechanic-list li {
+            padding: 8px 0;
+            color: var(--gray);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .mechanic-list li span:last-child {
+            color: var(--secondary);
             font-weight: 600;
         }
 
+        /* Roadmap Section */
+        .roadmap-section {
+            padding: 100px 20px;
+            background: linear-gradient(180deg, transparent 0%, rgba(78, 201, 176, 0.03) 50%, transparent 100%);
+        }
+
+        .roadmap-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .roadmap-item {
+            background: rgba(26, 26, 58, 0.5);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .roadmap-item.complete {
+            border-color: rgba(76, 175, 80, 0.5);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .roadmap-item.current {
+            border-color: rgba(255, 107, 53, 0.5);
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .roadmap-status {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .roadmap-item.complete .roadmap-status { color: #4CAF50; }
+        .roadmap-item.current .roadmap-status { color: var(--primary); }
+        .roadmap-item .roadmap-status { color: var(--gray); }
+
+        .roadmap-item h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .roadmap-item p {
+            color: var(--gray);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 120px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-title {
+            font-family: 'Bebas Neue', cursive;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            margin-bottom: 20px;
+        }
+
+        .cta-desc {
+            color: var(--gray);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Newsletter Form */
+        .newsletter-form {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            min-width: 250px;
+            padding: 16px 24px;
+            border-radius: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(26, 26, 58, 0.5);
+            color: var(--light);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .newsletter-form input:focus {
+            border-color: var(--primary);
+        }
+
+        .newsletter-form input::placeholder {
+            color: var(--gray);
+        }
+
+        /* Social Links */
+        .social-links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .social-link:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        /* Testimonial/Quote */
+        .quote-section {
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .quote-text {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-style: italic;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.4;
+        }
+
+        .quote-text strong {
+            color: var(--primary);
+        }
+
+        .quote-author {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            font-family: 'Bebas Neue', cursive;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        footer p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .game-showcase {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+
+            .mechanics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .roadmap-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
-            header h1 {
-                font-size: 2rem;
+            nav {
+                padding: 15px 20px;
             }
 
-            header p {
-                font-size: 1rem;
+            .nav-links {
+                display: none;
             }
 
-            h2 {
-                font-size: 1.8rem;
+            .hero {
+                padding: 100px 20px 60px;
             }
 
-            nav ul {
-                gap: 15px;
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .platforms {
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .stat-number {
+                font-size: 3rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .roadmap-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Language selector */
+        .lang-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--gray);
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .lang-btn:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>🏀 Pretetê's Basketball</h1>
-            <p>The Elifoot of Basketball Manager Games</p>
-            <p style="font-size: 1rem; margin-top: 20px;">Coming April 2026 to iOS, Android & Web</p>
-        </div>
-    </header>
+    <!-- Animated Background -->
+    <div class="bg-animation"></div>
+    <div class="floating-balls">
+        <span class="ball">🏀</span>
+        <span class="ball">🏀</span>
+        <span class="ball">🏀</span>
+        <span class="ball">🏀</span>
+        <span class="ball">🏀</span>
+    </div>
 
+    <!-- Navigation -->
     <nav>
-        <ul>
+        <a href="#" class="logo">🏀 PRETETÊ'S <span>BASKETBALL</span></a>
+        <ul class="nav-links">
             <li><a href="#features">Features</a></li>
-            <li><a href="#roadmap">Development Roadmap</a></li>
             <li><a href="#gameplay">Gameplay</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="#mechanics">Mechanics</a></li>
+            <li><a href="#roadmap">Roadmap</a></li>
             <li><a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank">GitHub</a></li>
+            <li><a href="#notify" class="nav-cta">Get Notified</a></li>
         </ul>
+        <div class="lang-selector">
+            <button class="lang-btn active">EN</button>
+            <button class="lang-btn">PT</button>
+        </div>
+        <button class="mobile-menu-btn">☰</button>
     </nav>
 
-    <section id="features">
-        <div class="container">
-            <h2>Why Pretetê's Basketball?</h2>
-            <div class="hero-features">
-                <div class="feature-card">
-                    <h3>🎮 Turn-Based Strategy</h3>
-                    <p>Experience tactical basketball where every decision matters. Build plays, manage positions, and outthink your opponents.</p>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="hero-badge">🔥 COMING APRIL 2026</span>
+            <h1>BUILD YOUR<br>BASKETBALL DYNASTY</h1>
+            <p class="hero-subtitle">
+                The <strong>ultimate basketball manager game</strong> inspired by the legendary Elifoot. 
+                Build your dream team, dominate leagues, and write your legacy.
+            </p>
+            <div class="hero-buttons">
+                <a href="#notify" class="btn btn-primary">
+                    🔔 Notify Me at Launch
+                </a>
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank" class="btn btn-secondary">
+                    ⭐ Star on GitHub
+                </a>
+            </div>
+            <div class="platforms">
+                <div class="platform">
+                    <div class="platform-icon">📱</div>
+                    <div>iOS</div>
                 </div>
-                <div class="feature-card">
-                    <h3>📊 Deep Simulation</h3>
-                    <p>D20-based shooting system with skill modifiers. Position bonuses for guards (3pt) and big men (2pt). ~65-85% shooting accuracy.</p>
+                <div class="platform">
+                    <div class="platform-icon">🤖</div>
+                    <div>Android</div>
                 </div>
-                <div class="feature-card">
-                    <h3>🏆 Team Management</h3>
-                    <p>Build your dream team of 12 players. Scout talent, develop skills, and dominate private leagues with friends.</p>
+                <div class="platform">
+                    <div class="platform-icon">🌐</div>
+                    <div>Web</div>
                 </div>
-                <div class="feature-card">
-                    <h3>� Bilingual Narration</h3>
-                    <p>Immersive commentary in Portuguese 🇧🇷 and English 🇺🇸 brings matches to life with play-by-play narration and dramatic moments.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>⚡ Fast Breaks</h3>
-                    <p>Steal the ball and trigger explosive fast breaks! Guards sprint downcourt for high-percentage scores (~24 fast breaks per game).</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🎯 Strategic 3-Pointers</h3>
-                    <p>Guards take smart 3-point shots from mid-range. ~15 threes per game keep scores exciting and realistic (80-110 PPG).</p>
-                </div>
-                <div class="feature-card">
-                    <h3>� Firebase Auth</h3>
-                    <p>Login with email/password or Google. Guest mode available for quick play without account.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🏆 League System</h3>
-                    <p>Create leagues, track standings, and compete through a full season with round-robin scheduling.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📊 Career Statistics</h3>
-                    <p>Track player stats across games with leaderboards for points, assists, rebounds, and more.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🎨 Court Visualization</h3>
-                    <p>Watch the action with SVG court display showing player positions and ball movement in real-time.</p>
+                <div class="platform">
+                    <div class="platform-icon">💻</div>
+                    <div>PWA</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="gameplay">
-        <div class="container">
-            <h2>How It Works</h2>
-            
-            <!-- Match Simulation Overview -->
-            <div style="max-width: 900px; margin: 0 auto 40px; background: #f5f5f5; padding: 40px; border-radius: 10px;">
-                <h3 style="color: #ff6b35; margin-bottom: 20px;">🏀 Match Simulation</h3>
-                <ol style="line-height: 2; color: #666; margin-left: 20px;">
-                    <li><strong>Build Your Team:</strong> Assemble 5 starters with positions (PG, SG, SF, PF, C) and skill levels (1-5 stars)</li>
-                    <li><strong>4 Quarters:</strong> Each quarter has 25 rounds of action (100 total rounds per game)</li>
-                    <li><strong>Real Game Clock:</strong> 12-minute quarters with countdown timer and possession tracking</li>
-                    <li><strong>Fouls & Bonus:</strong> Track team fouls per quarter - enter bonus after 4 fouls for free throws</li>
-                    <li><strong>Play Variety:</strong> Pick & roll, alley-oops, post-ups, fadeaways, dunks, and layups</li>
-                </ol>
-            </div>
+    <!-- Quote Section -->
+    <section class="quote-section">
+        <p class="quote-text">
+            "Like the legendary <strong>Elifoot (1987-2025)</strong>, but for basketball. 
+            Finally, a manager game that captures the soul of the sport."
+        </p>
+        <p class="quote-author">— For Basketball Fans, By Basketball Fans</p>
+    </section>
 
-            <!-- Dice Systems -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto;">
+    <!-- Game Preview Section -->
+    <section class="preview-section" id="gameplay">
+        <div class="preview-container">
+            <div class="section-header fade-in">
+                <div class="section-label">Experience the Game</div>
+                <h2 class="section-title">Every Match Tells a Story</h2>
+                <p class="section-desc">Real-time play-by-play narration in Portuguese and English. Watch your strategies unfold.</p>
+            </div>
+            
+            <div class="game-showcase">
+                <div class="showcase-card fade-in">
+                    <div class="showcase-icon">🏟️</div>
+                    <h3>Live Match Simulation</h3>
+                    <p>Watch 4 quarters of intense basketball action with realistic scores (80-120 PPG). 12-minute quarters, real game clock, and every possession matters.</p>
+                </div>
+                <div class="showcase-card fade-in">
+                    <div class="showcase-icon">📊</div>
+                    <h3>Deep Statistics</h3>
+                    <p>Track points, assists, rebounds, steals, blocks, fouls, and free throws. Build your players into legends with career stats.</p>
+                </div>
+                <div class="showcase-card fade-in">
+                    <div class="showcase-icon">🏆</div>
+                    <h3>League Domination</h3>
+                    <p>Create private leagues with friends. Round-robin tournaments, standings tables, and playoff dreams await.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="features-section" id="features">
+        <div class="section-header fade-in">
+            <div class="section-label">Packed with Features</div>
+            <h2 class="section-title">Everything You Need to Win</h2>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">🎲</div>
+                <h4>Position-Based Dice</h4>
+                <p>Centers dominate the paint (2d6), guards splash threes (1d6). Every position plays its role.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">⚡</div>
+                <h4>Fast Breaks</h4>
+                <p>Steal the ball and trigger explosive fast breaks with +3 shooting bonus. Momentum shifts instantly.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">🔄</div>
+                <h4>Play Variety</h4>
+                <p>Execute classic plays: pick & roll, alley-oops, post-ups, fadeaways, dunks, and layups.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">⚠️</div>
+                <h4>Fouls & Bonus</h4>
+                <p>Track team fouls per quarter. Enter bonus mode after 4 fouls for clutch free throws.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">🚫</div>
+                <h4>Blocks & Boards</h4>
+                <p>Big men protect the rim (1d8+1d10). Fight for every rebound (3d6 for centers). Second chance points win games.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">🌍</div>
+                <h4>Bilingual Narration</h4>
+                <p>Full play-by-play in Portuguese 🇧🇷 and English 🇺🇸. Feel every bucket, every steal, every block.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">📱</div>
+                <h4>Play Anywhere</h4>
+                <p>Progressive Web App works offline. Your dynasty travels with you on any device.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-emoji">🎮</div>
+                <h4>Guest Mode</h4>
+                <p>Jump straight into action. No signup required. Just pure basketball simulation.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-grid fade-in">
+            <div class="stat-item">
+                <div class="stat-number">100</div>
+                <div class="stat-label">Rounds Per Match</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">15+</div>
+                <div class="stat-label">Game Systems</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Languages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Replayability</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mechanics Section -->
+    <section class="mechanics-section" id="mechanics">
+        <div class="mechanics-container">
+            <div class="section-header fade-in">
+                <div class="section-label">Under the Hood</div>
+                <h2 class="section-title">Skill-Based Mechanics</h2>
+                <p class="section-desc">Every action is resolved with transparent, fair dice systems. Skill always matters.</p>
+            </div>
+            
+            <div class="mechanics-grid">
+                <div class="mechanic-card fade-in">
+                    <h3>🎯 D20 Dribble System</h3>
+                    <div class="mechanic-formula">threshold = 20 - (DRIBBLE - STEAL)</div>
+                    <ul class="mechanic-list">
+                        <li><span>Dribble 16 vs Steal 2</span> <span>75% success</span></li>
+                        <li><span>Dribble 10 vs Steal 10</span> <span>5% success</span></li>
+                        <li><span>Dribble 5 vs Steal 15</span> <span>Impossible</span></li>
+                    </ul>
+                </div>
                 
-                <!-- Action Resolver System -->
-                <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 10px; color: white;">
-                    <h3 style="color: #ff6b35; margin-bottom: 20px;">🎲 Action Resolver System</h3>
-                    <p style="margin-bottom: 15px; color: #ccc;">Position-based dice determine action outcomes:</p>
-                    
-                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">2-Point Shooting</h4>
-                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
-                        <li>Center (C): 2d6 dice</li>
-                        <li>Power Forward (PF): 1d8 dice</li>
-                        <li>SF/SG/PG: 1d4 dice</li>
-                    </ul>
-                    
-                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">3-Point Shooting</h4>
-                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
-                        <li>SG/SF: 1d6 dice</li>
-                        <li>PG: 1d3 dice</li>
-                        <li>PF/C: ❌ Cannot shoot 3s</li>
-                    </ul>
-                    
-                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Rebounds</h4>
-                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
-                        <li>Center: 3d6 dice</li>
-                        <li>Power Forward: 2d6 dice</li>
-                        <li>Small Forward: 1d6 dice</li>
-                    </ul>
-                    
-                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Blocks</h4>
-                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
-                        <li>Center: 1d8 + 1d10 dice</li>
-                        <li>Power Forward: 1d4 + 1d5 dice</li>
-                    </ul>
-                </div>
-
-                <!-- D20 Dribble System -->
-                <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 10px; color: white;">
-                    <h3 style="color: #ff6b35; margin-bottom: 20px;">🎯 D20 Dribble System</h3>
-                    <p style="margin-bottom: 15px; color: #ccc;">Dribble vs steal contests use a d20 mechanic:</p>
-                    
-                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <code style="color: #ff6b35; font-size: 1.1rem;">threshold = 20 - (DRIBBLE - STEAL)</code>
-                        <p style="color: #999; margin-top: 10px; font-size: 0.9rem;">Roll d20 ≥ threshold = SUCCESS</p>
-                    </div>
-                    
-                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Example Matchups</h4>
-                    <ul style="color: #ccc; margin-left: 20px; line-height: 1.8;">
-                        <li>Dribble 16 vs Steal 2 → threshold 6 → <span style="color: #4CAF50;">75% success</span></li>
-                        <li>Dribble 10 vs Steal 10 → threshold 20 → <span style="color: #ff9800;">5% success</span></li>
-                        <li>Dribble 5 vs Steal 15 → threshold 30+ → <span style="color: #f44336;">0% impossible</span></li>
-                    </ul>
-                    
-                    <h4 style="color: #4ec9b0; margin: 20px 0 10px;">Success Formula</h4>
-                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
-                        <p style="color: #ccc; line-height: 1.8;">
-                            <strong>If A &gt; B:</strong> 100 - (2×B - A) / 2<br>
-                            <strong>If A &lt; B:</strong> (2×A - B) / 2<br>
-                            <strong>If A = B:</strong> 50%
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Play Types -->
-            <div style="max-width: 900px; margin: 40px auto 0; background: #f5f5f5; padding: 40px; border-radius: 10px;">
-                <h3 style="color: #ff6b35; margin-bottom: 20px;">🎬 Play Types & Actions</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                        <span style="font-size: 2rem;">🔄</span>
-                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Pick & Roll</h4>
-                        <p style="color: #666; font-size: 0.9rem;">Use screens for open shots</p>
-                    </div>
-                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                        <span style="font-size: 2rem;">🔥</span>
-                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Alley-Oop</h4>
-                        <p style="color: #666; font-size: 0.9rem;">Lob passes for dunks</p>
-                    </div>
-                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                        <span style="font-size: 2rem;">💪</span>
-                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Post Up</h4>
-                        <p style="color: #666; font-size: 0.9rem;">Big men dominate the paint</p>
-                    </div>
-                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                        <span style="font-size: 2rem;">🎨</span>
-                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Fadeaway</h4>
-                        <p style="color: #666; font-size: 0.9rem;">Elite players only</p>
-                    </div>
-                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                        <span style="font-size: 2rem;">💥</span>
-                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Dunks</h4>
-                        <p style="color: #666; font-size: 0.9rem;">High percentage finishes</p>
-                    </div>
-                    <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                        <span style="font-size: 2rem;">⚡</span>
-                        <h4 style="color: #ff6b35; margin: 10px 0 5px;">Fast Break</h4>
-                        <p style="color: #666; font-size: 0.9rem;">+3 bonus after steals</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fouls & Free Throws -->
-            <div style="max-width: 900px; margin: 40px auto 0; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); padding: 40px; border-radius: 10px;">
-                <h3 style="color: #ff6b35; margin-bottom: 20px;">⚠️ Fouls & Free Throws</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
-                    <div>
-                        <h4 style="color: #e65100; margin-bottom: 10px;">Foul System</h4>
-                        <ul style="color: #666; line-height: 2;">
-                            <li>15% chance of foul on shot attempts</li>
-                            <li>8% chance on fast break attempts</li>
-                            <li>Team bonus after 4 quarter fouls</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: #e65100; margin-bottom: 10px;">Free Throws</h4>
-                        <ul style="color: #666; line-height: 2;">
-                            <li>2 FTs for fouled 2-point shot</li>
-                            <li>3 FTs for fouled 3-point shot</li>
-                            <li>1 FT for "And-One" plays</li>
-                            <li>d20 + skill ≥ 10 to make</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="roadmap">
-        <div class="container">
-            <h2>Development Roadmap</h2>
-            <div class="roadmap">
-                <div class="phase-box" style="border-color: #4CAF50; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
-                    <h3>Phase 0: Web MVP ✅ COMPLETE</h3>
-                    <ul>
-                        <li>✅ Court grid system</li>
-                        <li>✅ Match simulation (100 rounds)</li>
-                        <li>✅ Dribble/steal system (d20)</li>
-                        <li>✅ Bilingual narration (PT/EN)</li>
-                        <li>✅ React + Vite web UI</li>
-                    </ul>
-                </div>
-
-                <div class="phase-box" style="border-color: #4CAF50; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
-                    <h3>Phase 1: Features ✅ COMPLETE</h3>
-                    <ul>
-                        <li>✅ Firebase auth (email + Google)</li>
-                        <li>✅ League system with standings</li>
-                        <li>✅ Player career statistics</li>
-                        <li>✅ SVG court visualization</li>
-                        <li>✅ PWA offline support</li>
-                    </ul>
-                </div>
-
-                <div class="phase-box" style="border-color: #ff6b35;">
-                    <h3>Phase 2: Mobile Apps (Weeks 5-7) 🟡 NEXT</h3>
-                    <ul>
-                        <li>React Native iOS app</li>
-                        <li>React Native Android app</li>
-                        <li>Push notifications</li>
-                        <li>Native performance</li>
-                        <li>App Store/Play Store</li>
-                    </ul>
-                </div>
-
-                <div class="phase-box">
-                    <h3>Phase 3: Launch (Week 8+) 🎯</h3>
-                    <ul>
-                        <li>Full production release</li>
-                        <li>Marketing campaign</li>
-                        <li>Community events</li>
-                        <li>Seasonal content</li>
-                        <li>Revenue monetization</li>
+                <div class="mechanic-card fade-in">
+                    <h3>🎲 Position Dice</h3>
+                    <div class="mechanic-formula">Roll + Skill ≥ Difficulty</div>
+                    <ul class="mechanic-list">
+                        <li><span>Center 2-Point</span> <span>2d6</span></li>
+                        <li><span>Guard 3-Point</span> <span>1d6</span></li>
+                        <li><span>Center Rebound</span> <span>3d6</span></li>
+                        <li><span>Center Block</span> <span>1d8 + 1d10</span></li>
                     </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <section>
-        <div class="container">
-            <h2>Project Stats</h2>
-            <div class="stats">
-                <div class="stat-box">
-                    <div class="number">2/4</div>
-                    <p>Phases Complete</p>
-                </div>
-                <div class="stat-box">
-                    <div class="number">8,000+</div>
-                    <p>Lines of Code</p>
-                </div>
-                <div class="stat-box">
-                    <div class="number">15+</div>
-                    <p>Game Systems</p>
-                </div>
-                <div class="stat-box">
-                    <div class="number">2</div>
-                    <p>Languages (PT/EN)</p>
-                </div>
+    <!-- Roadmap Section -->
+    <section class="roadmap-section" id="roadmap">
+        <div class="section-header fade-in">
+            <div class="section-label">Development Progress</div>
+            <h2 class="section-title">Roadmap to Launch</h2>
+        </div>
+        
+        <div class="roadmap-grid">
+            <div class="roadmap-item complete fade-in">
+                <div class="roadmap-status">✅ Complete</div>
+                <h4>Phase 0: Core Engine</h4>
+                <p>Court system, match simulation, dice mechanics, narration engine, React UI</p>
             </div>
+            <div class="roadmap-item complete fade-in">
+                <div class="roadmap-status">✅ Complete</div>
+                <h4>Phase 1: Features</h4>
+                <p>Firebase auth, leagues, player stats, fouls & free throws, play types</p>
+            </div>
+            <div class="roadmap-item current fade-in">
+                <div class="roadmap-status">🟡 Next</div>
+                <h4>Phase 2: Mobile</h4>
+                <p>React Native iOS & Android apps, push notifications, native performance</p>
+            </div>
+            <div class="roadmap-item fade-in">
+                <div class="roadmap-status">🎯 April 2026</div>
+                <h4>Phase 3: Launch</h4>
+                <p>App Store & Play Store release, marketing, community features</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="notify">
+        <div class="cta-content fade-in">
+            <h2 class="cta-title">Ready to Build<br>Your Dynasty?</h2>
+            <p class="cta-desc">Be the first to know when Pretetê's Basketball launches. Get exclusive early access and updates.</p>
             
-            <!-- Core Systems List -->
-            <div style="max-width: 900px; margin: 40px auto 0; text-align: center;">
-                <h3 style="color: #ff6b35; margin-bottom: 20px;">✅ Core Systems Implemented</h3>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Court Grid (50×30)</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Match Engine</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Action Resolver</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">D20 Dribble System</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Narration Engine</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Position-Based Dice</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Foul Tracking</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Free Throws</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Play Types</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">League System</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Player Stats</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">SVG Court</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">PWA Support</span>
-                    <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem;">Guest Mode</span>
-                </div>
+            <form class="newsletter-form" onsubmit="event.preventDefault(); this.querySelector('button').textContent = '✅ Subscribed!'; this.querySelector('input').disabled = true;">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit" class="btn btn-primary">Notify Me</button>
+            </form>
+            
+            <div class="social-links">
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank" class="social-link" title="Star on GitHub">
+                    ⭐
+                </a>
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame/issues" target="_blank" class="social-link" title="Send Feedback">
+                    💬
+                </a>
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame/fork" target="_blank" class="social-link" title="Contribute">
+                    🔧
+                </a>
             </div>
         </div>
     </section>
 
-    <section style="background: #f5f5f5;">
-        <div class="container">
-            <h2>Tech Stack</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin: 40px 0;">
-                <div style="text-align: center;">
-                    <h3 style="color: #ff6b35; margin-bottom: 10px;">⚛️ React</h3>
-                    <p>Modern UI framework for responsive web and mobile</p>
-                </div>
-                <div style="text-align: center;">
-                    <h3 style="color: #ff6b35; margin-bottom: 10px;">🔥 Firebase</h3>
-                    <p>Backend, database, and real-time multiplayer sync</p>
-                </div>
-                <div style="text-align: center;">
-                    <h3 style="color: #ff6b35; margin-bottom: 10px;">📱 React Native</h3>
-                    <p>iOS and Android native applications</p>
-                </div>
-                <div style="text-align: center;">
-                    <h3 style="color: #ff6b35; margin-bottom: 10px;">⚡ Vite</h3>
-                    <p>Fast build tool and development server</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="contact">
-        <div class="container">
-            <h2>Get Involved</h2>
-            <div style="text-align: center; max-width: 600px; margin: 40px auto;">
-                <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">
-                    Interested in Pretetê's Basketball? Join the community, follow development, and help shape the future of basketball manager games!
-                </p>
-                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    <a href="https://github.com/victorfelisbino/pretetesbasketballgame" class="cta-button" target="_blank">
-                        ⭐ Star on GitHub
-                    </a>
-                    <a href="https://github.com/victorfelisbino/pretetesbasketballgame/issues" class="cta-button" target="_blank">
-                        💬 Report Feedback
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
+    <!-- Footer -->
     <footer>
-        <div class="container">
-            <p style="margin-bottom: 15px;">
-                <strong>Pretetê's Basketball</strong> - A basketball manager game inspired by Elifoot
+        <div class="footer-content">
+            <div class="footer-logo">🏀 PRETETÊ'S BASKETBALL</div>
+            <p>The Elifoot of Basketball • Coming April 2026</p>
+            <p style="margin-top: 10px;">
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank">GitHub</a> • 
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame/blob/master/README.md" target="_blank">Documentation</a> • 
+                <a href="https://github.com/victorfelisbino/pretetesbasketballgame/blob/master/GAME_MECHANICS_REFERENCE.md" target="_blank">Mechanics</a>
             </p>
-            <p style="margin-bottom: 15px; color: #999;">
-                Like the legendary Elifoot (1987-2025), but for basketball. 🏀
-            </p>
-            <p>
-                <a href="https://github.com/victorfelisbino/pretetesbasketballgame" target="_blank">GitHub Repository</a> •
-                <a href="https://github.com/victorfelisbino/pretetesbasketballgame/blob/master/README.md" target="_blank">Documentation</a> •
-                Version 1.0
-            </p>
-            <p style="margin-top: 20px; color: #999; font-size: 0.9rem;">
-                Made with 💜 by the Pretetê's Basketball Dev Team | © 2026
+            <p style="margin-top: 20px; font-size: 0.8rem;">
+                Made with 💜 in Brazil • Open Source on GitHub
             </p>
         </div>
     </footer>
 
+    <!-- Scroll Animation Script -->
     <script>
-        // Smooth scrolling for navigation links
+        // Intersection Observer for fade-in animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
+                    target.scrollIntoView({ behavior: 'smooth' });
                 }
+            });
+        });
+
+        // Language selector (visual demo)
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Parallax effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            document.querySelectorAll('.ball').forEach((ball, i) => {
+                const speed = 0.5 + (i * 0.1);
+                ball.style.transform = `translateY(${scrolled * speed * 0.1}px) rotate(${scrolled * 0.1}deg)`;
             });
         });
     </script>
