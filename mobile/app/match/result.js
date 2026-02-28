@@ -1,13 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import { colors, spacing, font, radius } from '../../theme';
+import { storage } from '../../lib/storage';
 import {
   normalizePlayerStatsFromEngine,
   calculatePlayerFantasyPoints,
 } from '../../src/core/fantasyScoring';
+
+const HISTORY_KEY = 'quadra_legacy_match_history';
 
 function StatRow({ label, home, away }) {
   return (
@@ -55,6 +58,35 @@ export default function MatchResultScreen() {
       home: calc(summary.homeTeamStats),
       away: calc(summary.awayTeamStats),
     };
+  }, [summary]);
+
+  // Save match to history (once)
+  const saved = useRef(false);
+  useEffect(() => {
+    if (!summary || saved.current) return;
+    saved.current = true;
+    (async () => {
+      try {
+        const raw = await storage.getItem(HISTORY_KEY);
+        const history = raw ? JSON.parse(raw) : [];
+        history.push({
+          id: `mh_${Date.now().toString(36)}`,
+          date: new Date().toISOString(),
+          homeTeam: summary.homeTeam,
+          awayTeam: summary.awayTeam,
+          homeScore: summary.homeScore,
+          awayScore: summary.awayScore,
+          winner: summary.winner,
+          homeTeamStats: summary.homeTeamStats,
+          awayTeamStats: summary.awayTeamStats,
+        });
+        // Keep latest 50 matches
+        if (history.length > 50) history.splice(0, history.length - 50);
+        await storage.setItem(HISTORY_KEY, JSON.stringify(history));
+      } catch (e) {
+        console.warn('Failed to save match history:', e);
+      }
+    })();
   }, [summary]);
 
   if (!summary) {
