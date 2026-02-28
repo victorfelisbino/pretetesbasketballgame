@@ -125,7 +125,7 @@ export default function MatchResultScreen() {
           </View>
         </View>
         <Text style={styles.winnerText}>
-          {summary.winner === 'TIE' ? 'Empate!' : `${summary.winner} venceu!`}
+          {summary.winner === 'TIE' ? 'Draw!' : `${summary.winner} wins!`}
         </Text>
       </View>
 

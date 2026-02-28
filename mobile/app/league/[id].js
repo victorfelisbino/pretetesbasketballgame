@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, FlatList, StyleSheet,
+  View, Text, ScrollView, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import Button from '../../components/Button';
 import SeasonTimeline from '../../components/SeasonTimeline';
 import PlayoffBracket from '../../components/PlayoffBracket';
 import TierBadge from '../../components/TierBadge';
-import { colors, spacing, font, radius } from '../../theme';
+import { colors, spacing, font, radius, hitSlop } from '../../theme';
 import { storage } from '../../lib/storage';
 
 const TABS = ['Timeline', 'Standings', 'Schedule', 'Teams'];
@@ -106,15 +106,29 @@ export default function LeagueViewScreen() {
   }, [season]);
 
   const handlePlayMatch = useCallback((matchInfo) => {
-    // Navigate to match flow
-    router.push('/match/tactics');
-  }, [router]);
+    if (!league) return;
+    const userTeam = league.teams?.find(t => t.isUser);
+    const oppId = matchInfo?.oppId || (matchInfo?.homeTeamId === userTeamId ? matchInfo?.awayTeamId : matchInfo?.homeTeamId);
+    const oppTeam = league.teams?.find(t => (t.id || t.name) === oppId);
+    if (!userTeam || !oppTeam) return;
+
+    const home = { name: userTeam.name, players: userTeam.players || [] };
+    const away = { name: oppTeam.name, players: oppTeam.players || [] };
+
+    router.push({
+      pathname: '/match/tactics',
+      params: {
+        homeTeam: JSON.stringify(home),
+        awayTeam: JSON.stringify(away),
+      },
+    });
+  }, [league, userTeamId, router]);
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading league...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -125,7 +139,7 @@ export default function LeagueViewScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={20} color={colors.textMuted} />
+            <Ionicons name="arrow-back" size={22} color={colors.textMuted} />
           </TouchableOpacity>
           <Text style={styles.title}>League Not Found</Text>
         </View>
@@ -138,7 +152,7 @@ export default function LeagueViewScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={20} color={colors.textMuted} />
+          <Ionicons name="arrow-back" size={22} color={colors.textMuted} />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
           <Text style={styles.title} numberOfLines={1}>{league.name}</Text>
@@ -289,9 +303,9 @@ export default function LeagueViewScreen() {
                   <Text style={styles.teamCardRecord}>
                     {team.stats?.wins || 0}W - {team.stats?.losses || 0}L
                   </Text>
-                  {team.roster && team.roster.length > 0 && (
+                  {team.players && team.players.length > 0 && (
                     <View style={styles.rosterList}>
-                      {team.roster.slice(0, 5).map((p, pIdx) => (
+                      {team.players.slice(0, 5).map((p, pIdx) => (
                         <View key={pIdx} style={styles.rosterRow}>
                           <Text style={styles.rosterPos}>{p.position}</Text>
                           <Text style={styles.rosterName} numberOfLines={1}>{p.name}</Text>
@@ -348,9 +362,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.bgCard,
     alignItems: 'center',
     justifyContent: 'center',
@@ -409,7 +423,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   tabText: {
-    fontSize: font.xs,
+    fontSize: font.sm,
     fontWeight: '600',
     color: colors.textMuted,
   },

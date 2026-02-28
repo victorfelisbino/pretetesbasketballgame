@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -122,7 +122,7 @@ export default function LeaguesScreen() {
 
       teams.push({
         id: 'team_user',
-        name: 'Meu Time',
+        name: 'My Team',
         isUser: true,
         players: generateTeamRoster(),
         stats: { wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 },
@@ -157,7 +157,7 @@ export default function LeaguesScreen() {
       await saveLeagues(updated);
       router.push(`/league/${leagueId}`);
     } catch (e) {
-      Alert.alert('Erro', 'Falha ao criar liga');
+      Alert.alert('Error', 'Failed to create league');
       console.error(e);
     } finally {
       setCreating(false);
@@ -172,7 +172,11 @@ export default function LeaguesScreen() {
         <Text style={styles.title}>Leagues</Text>
       </View>
 
-      {!hasLeagues && !loading ? (
+      {loading ? (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : !hasLeagues ? (
         <View style={styles.emptyState}>
           <Ionicons name="trophy-outline" size={64} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>No leagues yet</Text>

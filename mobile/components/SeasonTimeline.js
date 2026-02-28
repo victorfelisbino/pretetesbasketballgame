@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, TIER_COLORS } from '../theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const NODE_SIZE = 36;
@@ -381,13 +381,7 @@ function TimelineNode({ label, color, isCurrent, isFirst, isLast }) {
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function tierBadgeColor(tierId) {
-  const map = {
-    amateur: '#6c757d',
-    semi_pro: '#0d6efd',
-    professional: '#6f42c1',
-    premier: '#ffc107',
-  };
-  return map[tierId] || colors.bgInput;
+  return TIER_COLORS[tierId] || colors.bgInput;
 }
 
 function ordinal(n) {
@@ -542,7 +536,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     backgroundColor: colors.secondary,
     borderRadius: radius.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
+    minHeight: 44,
   },
   playBtnText: {
     fontSize: font.md,

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, font, radius } from '../../theme';
@@ -163,7 +163,11 @@ export default function StatsScreen() {
         <Text style={styles.title}>Stats</Text>
       </View>
 
-      {!hasData && !loading ? (
+      {loading ? (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : !hasData ? (
         <View style={styles.emptyState}>
           <Ionicons name="bar-chart-outline" size={64} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>No match history yet</Text>
@@ -212,6 +216,8 @@ export default function StatsScreen() {
               keyExtractor={item => item.id}
               style={styles.list}
               contentContainerStyle={styles.listContent}
+              onRefresh={loadHistory}
+              refreshing={loading}
               renderItem={({ item }) => <MatchHistoryCard match={item} />}
             />
           ) : (
@@ -309,8 +315,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm, gap: spacing.xs,
   },
   categoryChip: {
-    flex: 1, alignItems: 'center', paddingVertical: spacing.xs,
+    flex: 1, alignItems: 'center', paddingVertical: spacing.sm,
     borderRadius: radius.pill, backgroundColor: colors.bgCard,
+    minHeight: 36,
+    justifyContent: 'center',
   },
   categoryChipActive: { backgroundColor: colors.primary },
   categoryText: { fontSize: font.xs, fontWeight: '700', color: colors.textMuted },

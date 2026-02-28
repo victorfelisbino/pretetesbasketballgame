@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
-import { colors, spacing, font, radius } from '../../theme';
+import { colors, spacing, font, radius, TIER_COLORS, TIER_LABELS, hitSlop } from '../../theme';
 import { storage } from '../../lib/storage';
 import {
   createCareer,
@@ -13,20 +13,6 @@ import {
 } from '../../src/core/careerEngine';
 
 const STORAGE_KEY = 'quadra_legacy_career';
-
-const TIER_COLORS = {
-  amateur: colors.textMuted,
-  semi_pro: colors.warning,
-  professional: colors.secondary,
-  premier: colors.primary,
-};
-
-const TIER_LABELS = {
-  amateur: 'Amateur',
-  semi_pro: 'Semi-Pro',
-  professional: 'Professional',
-  premier: 'Premier',
-};
 
 function ProgressBar({ progress, color }) {
   return (
@@ -188,7 +174,7 @@ export default function CareerScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -201,9 +187,24 @@ export default function CareerScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Career</Text>
           <TouchableOpacity
-            onPress={async () => {
-              await storage.removeItem(STORAGE_KEY);
-              setCareer(null);
+            hitSlop={hitSlop}
+            style={styles.resetBtn}
+            onPress={() => {
+              Alert.alert(
+                'Reset Career',
+                'This will permanently erase all career progress. Are you sure?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Reset',
+                    style: 'destructive',
+                    onPress: async () => {
+                      await storage.removeItem(STORAGE_KEY);
+                      setCareer(null);
+                    },
+                  },
+                ],
+              );
             }}
           >
             <Text style={styles.resetText}>Reset</Text>
@@ -253,13 +254,13 @@ export default function CareerScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bgDark },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { color: colors.textMuted, fontSize: font.md },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md,
   },
   title: { fontSize: font.xxl, fontWeight: '800', color: colors.primary },
-  resetText: { fontSize: font.sm, color: colors.error },
+  resetBtn: { padding: spacing.sm },
+  resetText: { fontSize: font.sm, color: colors.error, fontWeight: '600' },
   content: {
     flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center', gap: spacing.md,
   },

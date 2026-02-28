@@ -2,8 +2,9 @@ import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
-import { colors, spacing, font, radius } from '../../theme';
+import { colors, spacing, font, radius, hitSlop } from '../../theme';
 import { PLAY_STYLES, DEFENSIVE_SCHEMES } from '../../src/core/tacticsEngine';
 
 const playStyleKeys = Object.keys(PLAY_STYLES);
@@ -48,7 +49,9 @@ export default function TacticsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Button title="← Back" onPress={() => router.back()} variant="outline" />
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} hitSlop={hitSlop}>
+          <Ionicons name="arrow-back" size={22} color={colors.textMuted} />
+        </TouchableOpacity>
         <Text style={styles.title}>Tactics</Text>
       </View>
 
@@ -88,6 +91,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center',
     gap: spacing.md, padding: spacing.lg,
+  },
+  backBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: colors.bgCard,
+    alignItems: 'center', justifyContent: 'center',
   },
   title: { fontSize: font.xl, fontWeight: '700', color: colors.primary },
   scroll: { flex: 1 },

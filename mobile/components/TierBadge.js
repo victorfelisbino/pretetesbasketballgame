@@ -1,31 +1,16 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radius, font } from '../theme';
-
-const TIER_COLORS = {
-  amateur: '#6c757d',
-  semi_pro: '#0d6efd',
-  professional: '#6f42c1',
-  premier: '#ffc107',
-};
-
-const TIER_LABELS = {
-  amateur: { en: 'Amateur', pt: 'Amador' },
-  semi_pro: { en: 'Semi-Pro', pt: 'Semi-Pro' },
-  professional: { en: 'Professional', pt: 'Profissional' },
-  premier: { en: 'Premier', pt: 'Premier' },
-};
+import { colors, spacing, radius, font, TIER_COLORS, TIER_LABELS } from '../theme';
 
 export default function TierBadge({ tierId, size = 'md' }) {
   const bgColor = TIER_COLORS[tierId] || colors.bgInput;
-  const label = TIER_LABELS[tierId]?.pt || tierId || 'Amateur';
+  const label = TIER_LABELS[tierId] || tierId || 'Amateur';
   const isSmall = size === 'sm';
 
   return (
-    <View style={[
-      styles.badge,
-      { backgroundColor: bgColor },
-      isSmall && styles.badgeSmall,
-    ]}>
+    <View
+      style={[styles.badge, { backgroundColor: bgColor }, isSmall && styles.badgeSmall]}
+      accessibilityLabel={`Tier: ${label}`}
+    >
       <Text style={[styles.text, isSmall && styles.textSmall]}>
         {label}
       </Text>
@@ -49,6 +34,6 @@ const styles = StyleSheet.create({
     color: colors.textLight,
   },
   textSmall: {
-    fontSize: 9,
+    fontSize: font.xs,
   },
 });

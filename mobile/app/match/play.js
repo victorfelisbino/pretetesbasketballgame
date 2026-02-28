@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
-import { colors, spacing, font, radius } from '../../theme';
+import { colors, spacing, font, radius, hitSlop } from '../../theme';
 import { GameController } from '../../src/gameController';
 
 const NARRATION_COLORS = {
@@ -39,7 +40,7 @@ export default function MatchPlayScreen() {
 
     const gc = new GameController(homeTeam.current, awayTeam.current, {
       speed: 30,
-      language: 'pt',
+      language: 'en',
       homeTactics: {
         playStyle: params.playStyle || 'HALF_COURT',
         defensiveScheme: params.defScheme || 'MAN_TO_MAN',
@@ -70,6 +71,21 @@ export default function MatchPlayScreen() {
     startMatch();
   }, [startMatch]);
 
+  const handleQuit = useCallback(() => {
+    Alert.alert(
+      'Leave Match',
+      'Are you sure you want to abandon this match? Progress will be lost.',
+      [
+        { text: 'Stay', style: 'cancel' },
+        {
+          text: 'Leave',
+          style: 'destructive',
+          onPress: () => router.back(),
+        },
+      ],
+    );
+  }, [router]);
+
   const handleFinish = useCallback(() => {
     router.push({
       pathname: '/match/result',
@@ -79,9 +95,31 @@ export default function MatchPlayScreen() {
 
   const homeName = homeTeam.current?.name || 'Home';
   const awayName = awayTeam.current?.name || 'Away';
+  const progress = state ? Math.round((state.round / 100) * 100) : 0;
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Top bar with quit */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          onPress={handleQuit}
+          style={styles.quitBtn}
+          hitSlop={hitSlop}
+          accessibilityRole="button"
+          accessibilityLabel="Leave match"
+        >
+          <Ionicons name="close" size={22} color={colors.textMuted} />
+        </TouchableOpacity>
+
+        {/* Progress bar */}
+        {state && !summary && (
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+          </View>
+        )}
+        {summary && <Text style={styles.topBarFinal}>FINAL</Text>}
+      </View>
+
       {/* Scoreboard */}
       <View style={styles.scoreboard}>
         <View style={styles.teamCol}>
@@ -90,10 +128,7 @@ export default function MatchPlayScreen() {
         </View>
         <View style={styles.midCol}>
           <Text style={styles.quarterText}>
-            {summary ? 'FINAL' : state ? `Q${state.quarter}` : '—'}
-          </Text>
-          <Text style={styles.roundText}>
-            {summary ? '' : state ? `R${state.round}/100` : ''}
+            {summary ? 'FINAL' : state ? `Q${state.quarter}` : '--'}
           </Text>
         </View>
         <View style={styles.teamCol}>
@@ -109,7 +144,7 @@ export default function MatchPlayScreen() {
             styles.possessionDot,
             state.possession === 'home' && styles.possessionActive,
           ]} />
-          <Text style={styles.possessionText}>Posse de bola</Text>
+          <Text style={styles.possessionText}>Possession</Text>
           <View style={[
             styles.possessionDot,
             state.possession === 'away' && styles.possessionActive,
@@ -144,7 +179,7 @@ export default function MatchPlayScreen() {
       {/* Footer */}
       {summary && (
         <View style={styles.footer}>
-          <Button title="See Results →" onPress={handleFinish} />
+          <Button title="See Results" onPress={handleFinish} />
         </View>
       )}
     </SafeAreaView>
@@ -153,6 +188,27 @@ export default function MatchPlayScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bgDark },
+  topBar: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    gap: spacing.md,
+  },
+  quitBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: colors.bgCard,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  progressContainer: {
+    flex: 1, height: 6, backgroundColor: colors.bgInput,
+    borderRadius: 3, overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%', backgroundColor: colors.primary, borderRadius: 3,
+  },
+  topBarFinal: {
+    flex: 1, textAlign: 'center',
+    fontSize: font.sm, fontWeight: '700', color: colors.primary,
+  },
   scoreboard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: colors.bgCard, padding: spacing.lg,
@@ -163,7 +219,6 @@ const styles = StyleSheet.create({
   teamScore: { fontSize: font.title, fontWeight: '800', color: colors.textLight },
   midCol: { alignItems: 'center', paddingHorizontal: spacing.md },
   quarterText: { fontSize: font.lg, fontWeight: '700', color: colors.primary },
-  roundText: { fontSize: font.xs, color: colors.textMuted },
   possessionBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: spacing.xl, paddingVertical: spacing.sm,
