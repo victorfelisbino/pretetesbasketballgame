@@ -372,6 +372,11 @@ class GameController {
         p.stats.rebounds = 0;
         p.stats.steals = 0;
         p.stats.blocks = 0;
+        p.stats.turnovers = 0;
+        p.stats.fieldGoalsMade = 0;
+        p.stats.fieldGoalsMissed = 0;
+        p.stats.freeThrowsMade = 0;
+        p.stats.freeThrowsMissed = 0;
       }
     });
     this.awayTeam.players.forEach(p => {
@@ -381,6 +386,11 @@ class GameController {
         p.stats.rebounds = 0;
         p.stats.steals = 0;
         p.stats.blocks = 0;
+        p.stats.turnovers = 0;
+        p.stats.fieldGoalsMade = 0;
+        p.stats.fieldGoalsMissed = 0;
+        p.stats.freeThrowsMade = 0;
+        p.stats.freeThrowsMissed = 0;
       }
     });
 
@@ -725,6 +735,9 @@ class GameController {
         if (defender.stats) {
           defender.stats.steals = (defender.stats.steals || 0) + 1;
         }
+        if (ballCarrier.stats) {
+          ballCarrier.stats.turnovers = (ballCarrier.stats.turnovers || 0) + 1;
+        }
         this._addNarration('steal', {
           defender: defender.name,
           attacker: ballCarrier.name,
@@ -845,9 +858,12 @@ class GameController {
     });
 
     if (shotMade) {
-      // And-one situation
+      // And-one situation — field goal counts as made
       const points = shotType === '2pt' ? 2 : 3;
       this._awardPoints(shooter, shooterIsHome, points);
+      if (shooter.stats) {
+        shooter.stats.fieldGoalsMade = (shooter.stats.fieldGoalsMade || 0) + 1;
+      }
       this._addNarration('andOne', { player: shooter.name });
 
       // One free throw — resolved via ActionResolver
@@ -857,12 +873,17 @@ class GameController {
       });
       if (ftResult.made) {
         this._awardPoints(shooter, shooterIsHome, 1);
+        if (shooter.stats) shooter.stats.freeThrowsMade = (shooter.stats.freeThrowsMade || 0) + 1;
         this._addNarration('freeThrowMake', { player: shooter.name });
       } else {
+        if (shooter.stats) shooter.stats.freeThrowsMissed = (shooter.stats.freeThrowsMissed || 0) + 1;
         this._addNarration('freeThrowMiss', { player: shooter.name });
       }
     } else {
-      // Missed shot — shoot free throws via ActionResolver
+      // Missed shot — counts as FG missed, shoot free throws via ActionResolver
+      if (shooter.stats) {
+        shooter.stats.fieldGoalsMissed = (shooter.stats.fieldGoalsMissed || 0) + 1;
+      }
       const numFT = shotType === '3pt' ? 3 : 2;
       for (let ft = 0; ft < numFT; ft++) {
         const ftResult = ActionResolver.resolveFreeThrow({
@@ -871,8 +892,10 @@ class GameController {
         });
         if (ftResult.made) {
           this._awardPoints(shooter, shooterIsHome, 1);
+          if (shooter.stats) shooter.stats.freeThrowsMade = (shooter.stats.freeThrowsMade || 0) + 1;
           this._addNarration('freeThrowMake', { player: shooter.name });
         } else {
+          if (shooter.stats) shooter.stats.freeThrowsMissed = (shooter.stats.freeThrowsMissed || 0) + 1;
           this._addNarration('freeThrowMiss', { player: shooter.name });
         }
       }
@@ -894,6 +917,28 @@ class GameController {
   }) {
     const points = shotType === '2pt' ? 2 : 3;
     this._awardPoints(shooter, shooterIsHome, points);
+
+    // Track field goal made
+    if (shooter.stats) {
+      shooter.stats.fieldGoalsMade = (shooter.stats.fieldGoalsMade || 0) + 1;
+    }
+
+    // Track assist — passer gets credit, or a random teammate on non-stolen plays
+    if (!stolen) {
+      let assister = passer;
+      if (!assister && activePlayers && activePlayers.length > 1) {
+        // ~50% chance a teammate gets an assist on any made basket
+        if (Math.random() < 0.50) {
+          const teammates = activePlayers.filter(p => p !== shooter);
+          if (teammates.length > 0) {
+            assister = this._selectWeighted(teammates, BALL_CARRIER_WEIGHTS);
+          }
+        }
+      }
+      if (assister && assister.stats) {
+        assister.stats.assists = (assister.stats.assists || 0) + 1;
+      }
+    }
 
     // Choose narration based on play type
     if (stolen) {
@@ -939,8 +984,17 @@ class GameController {
     defenseTeam,
     stolen,
   }) {
+    // Track field goal missed
+    if (shooter.stats) {
+      shooter.stats.fieldGoalsMissed = (shooter.stats.fieldGoalsMissed || 0) + 1;
+    }
+
     const blockChance = shotType === '2pt' ? 0.15 : 0.08;
     if (Math.random() < blockChance && shooterDefender) {
+      // Track block on the defender
+      if (shooterDefender.stats) {
+        shooterDefender.stats.blocks = (shooterDefender.stats.blocks || 0) + 1;
+      }
       this._addNarration('block', {
         defender: shooterDefender.name,
         player: shooter.name,
@@ -1226,6 +1280,11 @@ class GameController {
         rebounds: p.stats ? p.stats.rebounds || 0 : 0,
         steals: p.stats ? p.stats.steals || 0 : 0,
         blocks: p.stats ? p.stats.blocks || 0 : 0,
+        turnovers: p.stats ? p.stats.turnovers || 0 : 0,
+        fieldGoalsMade: p.stats ? p.stats.fieldGoalsMade || 0 : 0,
+        fieldGoalsMissed: p.stats ? p.stats.fieldGoalsMissed || 0 : 0,
+        freeThrowsMade: p.stats ? p.stats.freeThrowsMade || 0 : 0,
+        freeThrowsMissed: p.stats ? p.stats.freeThrowsMissed || 0 : 0,
       })),
       awayTeamStats: this.awayTeam.players.map(p => ({
         name: p.name,
@@ -1235,6 +1294,11 @@ class GameController {
         rebounds: p.stats ? p.stats.rebounds || 0 : 0,
         steals: p.stats ? p.stats.steals || 0 : 0,
         blocks: p.stats ? p.stats.blocks || 0 : 0,
+        turnovers: p.stats ? p.stats.turnovers || 0 : 0,
+        fieldGoalsMade: p.stats ? p.stats.fieldGoalsMade || 0 : 0,
+        fieldGoalsMissed: p.stats ? p.stats.fieldGoalsMissed || 0 : 0,
+        freeThrowsMade: p.stats ? p.stats.freeThrowsMade || 0 : 0,
+        freeThrowsMissed: p.stats ? p.stats.freeThrowsMissed || 0 : 0,
       })),
     };
   }
