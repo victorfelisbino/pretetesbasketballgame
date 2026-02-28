@@ -465,7 +465,7 @@ class ActionResolver {
      */
     static getAvailableActions(position) {
         const actions = {};
-        
+
         for (const [actionType, positions] of Object.entries(POSITION_DICE)) {
             const dice = positions[position];
             actions[actionType] = {
@@ -475,6 +475,93 @@ class ActionResolver {
         }
 
         return actions;
+    }
+
+    // =========================================================
+    // FOULS + FREE THROWS SYSTEM
+    // =========================================================
+
+    /**
+     * Check whether a shooting foul occurs on a shot attempt.
+     * Base chance: 15% for 2pt, 12% for 3pt.
+     *
+     * @param {Object} shooter  - Offensive player attempting the shot
+     * @param {Object} defender - Nearest defending player
+     * @param {string} shotType - '2pt' or '3pt' (default '2pt')
+     * @returns {Object} {
+     *   foulOccurred: boolean,
+     *   fouledPlayer: string,   // shooter's name
+     *   defender: string,       // defender's name
+     *   shooterFouled: boolean,
+     *   freeThrowsAwarded: number  // 2 for 2pt attempt, 3 for 3pt attempt
+     * }
+     */
+    static checkFoulOnShotAttempt(shooter, defender, shotType = '2pt') {
+        const foulChance = shotType === '3pt' ? 12 : 15;
+        const foulOccurred = Math.random() * 100 < foulChance;
+
+        if (!foulOccurred) {
+            return { foulOccurred: false };
+        }
+
+        const freeThrowsAwarded = shotType === '3pt' ? 3 : 2;
+
+        return {
+            foulOccurred: true,
+            fouledPlayer: shooter ? shooter.name : 'Shooter',
+            defender: defender ? defender.name : 'Defender',
+            shooterFouled: true,
+            freeThrowsAwarded
+        };
+    }
+
+    /**
+     * Simulate a single free throw attempt.
+     * Uses the shooter's freeThrow attribute (1–99) directly as a success percentage.
+     * Falls back to 70% if the attribute is not present.
+     *
+     * @param {Object} shooter - Player attempting the free throw; must expose
+     *                           getFreeThrowSuccessPercent() or a freeThrow attribute.
+     * @returns {Object} { made: boolean, points: number, successPercent: number }
+     */
+    static resolveFreeThrow(shooter) {
+        const successPercent = shooter && typeof shooter.getFreeThrowSuccessPercent === 'function'
+            ? shooter.getFreeThrowSuccessPercent()
+            : (shooter && shooter.freeThrow) || 70;
+
+        const made = Math.random() * 100 < successPercent;
+
+        return {
+            made,
+            points: made ? 1 : 0,
+            successPercent
+        };
+    }
+
+    /**
+     * Check whether a reach-in foul occurs during a dribble contest.
+     * Base chance: 10%.
+     *
+     * @param {Object} ballCarrier - Offensive player dribbling the ball
+     * @param {Object} defender    - Defending player reaching in
+     * @returns {Object} {
+     *   foulOccurred: boolean,
+     *   fouledPlayer: string,  // ballCarrier's name (who was fouled)
+     *   defender: string       // defender's name (who fouled)
+     * }
+     */
+    static checkFoulOnDribble(ballCarrier, defender) {
+        const foulOccurred = Math.random() * 100 < 10;
+
+        if (!foulOccurred) {
+            return { foulOccurred: false };
+        }
+
+        return {
+            foulOccurred: true,
+            fouledPlayer: ballCarrier ? ballCarrier.name : 'Ball Carrier',
+            defender: defender ? defender.name : 'Defender'
+        };
     }
 }
 

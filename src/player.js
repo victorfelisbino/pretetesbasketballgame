@@ -17,6 +17,7 @@ class Player {
             blocks: 0,
             fouls: 0,
             freethrows: 0,
+            freethrowsMade: 0,
             shots2pt: { made: 0, attempted: 0 },
             shots3pt: { made: 0, attempted: 0 }
         };
@@ -26,6 +27,12 @@ class Player {
         this.isActive = true;
         this.x = 0;
         this.y = 0;
+
+        // Free throw attribute (1-99 scale, position-appropriate default)
+        // PG/SG: good FT shooters (70-82), SF: moderate (60-75), PF: lower (50-70), C: lowest (40-60)
+        const ftRanges = { PG: [72, 82], SG: [70, 80], SF: [60, 75], PF: [50, 70], C: [40, 60] };
+        const ftRange = ftRanges[this.position] || [50, 70];
+        this.freeThrow = Math.floor(Math.random() * (ftRange[1] - ftRange[0] + 1)) + ftRange[0];
     }
 
     /**
@@ -78,11 +85,43 @@ class Player {
     addFoul() {
         this.foulCount++;
         this.stats.fouls++;
-        
+
         // Player fouls out after 5 fouls
         if (this.foulCount >= 5) {
             this.isActive = false;
         }
+    }
+
+    /**
+     * Add a personal foul committed (NBA rule: foul-out at 6)
+     * Used by the Fouls + Free Throws system.
+     * Increments foulCount and stats.fouls, then disqualifies the player at 6 fouls.
+     */
+    addFoulCommitted() {
+        this.foulCount++;
+        this.stats.fouls++;
+
+        if (this.foulCount >= 6) {
+            this.isActive = false;
+        }
+    }
+
+    /**
+     * Check whether this player has fouled out (>= 6 fouls committed, NBA rule)
+     * @returns {boolean} true if the player is disqualified
+     */
+    isFouledOut() {
+        return this.foulCount >= 6;
+    }
+
+    /**
+     * Get free-throw success percentage for this player.
+     * The freeThrow attribute (1–99) is treated directly as a success percentage,
+     * so a player with freeThrow=75 makes 75 % of their free throws.
+     * @returns {number} Success percentage (0–99)
+     */
+    getFreeThrowSuccessPercent() {
+        return this.freeThrow || 70;
     }
 
     /**
@@ -113,6 +152,7 @@ class Player {
     attemptFreeThrow(successful) {
         this.stats.freethrows++;
         if (successful) {
+            this.stats.freethrowsMade++;
             this.addPoints(1);
         }
     }
@@ -148,6 +188,9 @@ class Player {
             steals: this.stats.steals,
             blocks: this.stats.blocks,
             fouls: this.stats.fouls,
+            freeThrowAttr: this.freeThrow,
+            freethrowsAttempted: this.stats.freethrows,
+            freethrowsMade: this.stats.freethrowsMade,
             isActive: this.isActive,
             foulCount: this.foulCount
         };
@@ -165,6 +208,7 @@ class Player {
             blocks: 0,
             fouls: 0,
             freethrows: 0,
+            freethrowsMade: 0,
             shots2pt: { made: 0, attempted: 0 },
             shots3pt: { made: 0, attempted: 0 }
         };

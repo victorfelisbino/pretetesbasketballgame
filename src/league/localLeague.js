@@ -99,11 +99,10 @@ export function addTeamToLocalLeague(leagueId, team) {
     stats: {
       played: 0,
       wins: 0,
-      draws: 0,
       losses: 0,
       pointsFor: 0,
       pointsAgainst: 0,
-      points: 0
+      fantasyPts: 0
     }
   };
   
@@ -213,12 +212,9 @@ export function recordLocalMatchResult(leagueId, matchId, homeScore, awayScore) 
     homeTeam.stats.pointsFor += homeScore;
     homeTeam.stats.pointsAgainst += awayScore;
     
-    if (homeScore > awayScore) {
+    if (homeScore >= awayScore) {
+      // In basketball there are no draws; if scores are equal, home team wins the tie
       homeTeam.stats.wins++;
-      homeTeam.stats.points += 3;
-    } else if (homeScore === awayScore) {
-      homeTeam.stats.draws++;
-      homeTeam.stats.points += 1;
     } else {
       homeTeam.stats.losses++;
     }
@@ -234,10 +230,6 @@ export function recordLocalMatchResult(leagueId, matchId, homeScore, awayScore) 
     
     if (awayScore > homeScore) {
       awayTeam.stats.wins++;
-      awayTeam.stats.points += 3;
-    } else if (homeScore === awayScore) {
-      awayTeam.stats.draws++;
-      awayTeam.stats.points += 1;
     } else {
       awayTeam.stats.losses++;
     }
@@ -253,7 +245,7 @@ export function recordLocalMatchResult(leagueId, matchId, homeScore, awayScore) 
 }
 
 /**
- * Get standings sorted by points
+ * Get standings sorted by wins, then point differential, then pointsFor
  * @param {string} leagueId 
  * @returns {Array}
  */
@@ -263,16 +255,19 @@ export function getLocalStandings(leagueId) {
   if (!league) return [];
   
   return [...league.teams].sort((a, b) => {
-    if (b.stats.points !== a.stats.points) {
-      return b.stats.points - a.stats.points;
+    // 1. Wins descending
+    if (b.stats.wins !== a.stats.wins) {
+      return b.stats.wins - a.stats.wins;
     }
     
+    // 2. Point differential descending
     const aDiff = a.stats.pointsFor - a.stats.pointsAgainst;
     const bDiff = b.stats.pointsFor - b.stats.pointsAgainst;
     if (bDiff !== aDiff) {
       return bDiff - aDiff;
     }
     
+    // 3. Points scored descending
     return b.stats.pointsFor - a.stats.pointsFor;
   });
 }
@@ -339,11 +334,10 @@ export function startLocalNewSeason(leagueId) {
     team.stats = {
       played: 0,
       wins: 0,
-      draws: 0,
       losses: 0,
       pointsFor: 0,
       pointsAgainst: 0,
-      points: 0
+      fantasyPts: 0
     };
   });
   

@@ -25,3 +25,14 @@ yarn-error.log*
 
 # Testing
 coverage/
+
+# Claude temp files
+tmpclaude-*
+nul
+
+# Expo
+mobile/node_modules/
+mobile/.expo/
+
+# Temp scripts
+_fix_playerStats.mjs

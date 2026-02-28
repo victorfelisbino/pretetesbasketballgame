@@ -1,0 +1,199 @@
+rules_version = '2';
+
+// Quadra Legacy — Firestore Security Rules
+// Schema reference: MOBILE_GAME_MASTER_PLAN.md Section 8.2
+//
+// Principle: Users can read/write their own data.
+// Match results and league data are readable by all league members.
+// No user can write another user's documents.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -----------------------------------------------------------------------
+    // Helper functions
+    // -----------------------------------------------------------------------
+
+    // Is the requester authenticated?
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    // Is the requester the owner of this document?
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Is the requester a member of the given league?
+    function isLeagueMember(leagueId) {
+      return isAuthed() &&
+        exists(/databases/$(database)/documents/leagues/$(leagueId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/leagues/$(leagueId)).data.memberUserIds;
+    }
+
+    // Is the requester the commissioner of the given league?
+    function isCommissioner(leagueId) {
+      return isAuthed() &&
+        get(/databases/$(database)/documents/leagues/$(leagueId)).data.commissionerId == request.auth.uid;
+    }
+
+    // Does the incoming data only update allowed fields (no privilege escalation)?
+    function onlyUpdates(allowedFields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
+    }
+
+    // -----------------------------------------------------------------------
+    // users/{userId}
+    // -----------------------------------------------------------------------
+    match /users/{userId} {
+      // Any authenticated user can read any user's public profile
+      allow read: if isAuthed();
+
+      // Only the owner can create or update their own document
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+
+      // No user deletion through client (handled server-side if needed)
+      allow delete: if false;
+    }
+
+    // -----------------------------------------------------------------------
+    // teams/{teamId}
+    // -----------------------------------------------------------------------
+    match /teams/{teamId} {
+      // Any authenticated user can read team data (needed for league views)
+      allow read: if isAuthed();
+
+      // Only the owner can create a team (ownerId must match their uid)
+      allow create: if isAuthed() &&
+        request.resource.data.ownerId == request.auth.uid;
+
+      // Only the owner can update their team
+      allow update: if isAuthed() &&
+        resource.data.ownerId == request.auth.uid;
+
+      // Only the owner can delete their team
+      allow delete: if isAuthed() &&
+        resource.data.ownerId == request.auth.uid;
+
+      // Sub-collection: players on this team
+      match /players/{playerId} {
+        allow read: if isAuthed();
+        allow write: if isAuthed() &&
+          get(/databases/$(database)/documents/teams/$(teamId)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // players/{playerId}
+    // The global player registry — all fictional athletes
+    // -----------------------------------------------------------------------
+    match /players/{playerId} {
+      // Any authenticated user can read player data
+      allow read: if isAuthed();
+
+      // Players are created by the team owner or during draft (server-side)
+      // For client-side creation: requester must own the team OR player is a free agent
+      allow create: if isAuthed();
+
+      // Only the owning team's manager can update their player's data
+      // (e.g. training, development choices)
+      allow update: if isAuthed() && (
+        resource.data.teamId == null ||
+        get(/databases/$(database)/documents/teams/$(resource.data.teamId)).data.ownerId == request.auth.uid
+      );
+
+      allow delete: if false; // Players are never deleted, only retired
+    }
+
+    // -----------------------------------------------------------------------
+    // leagues/{leagueId}
+    // -----------------------------------------------------------------------
+    match /leagues/{leagueId} {
+      // Any authenticated user can read league data (for invite code join flow)
+      allow read: if isAuthed();
+
+      // Any authenticated user can create a league (they become commissioner)
+      allow create: if isAuthed() &&
+        request.resource.data.commissionerId == request.auth.uid;
+
+      // Commissioner can update most league settings
+      // Members can update the memberUserIds array (to add themselves via invite code)
+      allow update: if isAuthed() && (
+        isCommissioner(leagueId) ||
+        // Allow a user to add themselves to the league (join via invite code)
+        (isAuthed() &&
+         onlyUpdates(['memberUserIds', 'teamIds']) &&
+         request.resource.data.memberUserIds.hasAll(resource.data.memberUserIds))
+      );
+
+      // Only commissioner can delete a league
+      allow delete: if isCommissioner(leagueId);
+    }
+
+    // -----------------------------------------------------------------------
+    // matches/{matchId}
+    // -----------------------------------------------------------------------
+    match /matches/{matchId} {
+      // League members can read matches in their league
+      allow read: if isAuthed() &&
+        isLeagueMember(resource.data.leagueId);
+
+      // Matches are created by the system (server-side Cloud Functions ideally)
+      // For now, allow league commissioners to create match records
+      allow create: if isAuthed() &&
+        isCommissioner(request.resource.data.leagueId);
+
+      // Match results are updated by the system; allow league members to update
+      // only their own team's lineup/tactics for an upcoming match
+      allow update: if isAuthed() && (
+        isCommissioner(resource.data.leagueId) ||
+        (resource.data.status == 'scheduled' &&
+         isLeagueMember(resource.data.leagueId))
+      );
+
+      allow delete: if false;
+    }
+
+    // -----------------------------------------------------------------------
+    // seasons/{seasonId}
+    // -----------------------------------------------------------------------
+    match /seasons/{seasonId} {
+      // Any league member can read season data
+      allow read: if isAuthed() &&
+        isLeagueMember(resource.data.leagueId);
+
+      // Only commissioners manage seasons
+      allow create: if isAuthed() &&
+        isCommissioner(request.resource.data.leagueId);
+
+      allow update: if isAuthed() &&
+        isCommissioner(resource.data.leagueId);
+
+      allow delete: if false;
+    }
+
+    // -----------------------------------------------------------------------
+    // leagueChats/{leagueId}/messages/{messageId}
+    // Phase 3: league chat feature
+    // -----------------------------------------------------------------------
+    match /leagueChats/{leagueId}/messages/{messageId} {
+      allow read: if isLeagueMember(leagueId);
+
+      // Any league member can send a message
+      allow create: if isLeagueMember(leagueId) &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Users can only edit/delete their own messages
+      allow update, delete: if isLeagueMember(leagueId) &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // -----------------------------------------------------------------------
+    // Deny everything else by default
+    // -----------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -38,9 +38,27 @@ function savePlayerStats(stats) {
  */
 export function recordGameStats(player, gameStats) {
   const allStats = loadPlayerStats();
-  
+
+  // Support both flat stats (points, assists...) and nested engine stats (stats.pointsScored...)
+  const normalizedStats = {
+    points: gameStats.points ?? gameStats.stats?.pointsScored ?? 0,
+    assists: gameStats.assists ?? gameStats.stats?.assists ?? 0,
+    rebounds: gameStats.rebounds ?? gameStats.stats?.rebounds ?? 0,
+    steals: gameStats.steals ?? gameStats.stats?.steals ?? 0,
+    blocks: gameStats.blocks ?? gameStats.stats?.blocks ?? 0,
+    turnovers: gameStats.turnovers ?? gameStats.stats?.turnovers ?? 0,
+    fouls: gameStats.fouls ?? gameStats.stats?.fouls ?? 0,
+    minutes: gameStats.minutes ?? gameStats.stats?.minutes ?? 0,
+    twoPointAttempts: gameStats.twoPointAttempts ?? gameStats.stats?.twoPointAttempts ?? 0,
+    twoPointMade: gameStats.twoPointMade ?? gameStats.stats?.twoPointMade ?? 0,
+    threePointAttempts: gameStats.threePointAttempts ?? gameStats.stats?.threePointAttempts ?? 0,
+    threePointMade: gameStats.threePointMade ?? gameStats.stats?.threePointMade ?? 0,
+    freeThrowAttempts: gameStats.freeThrowAttempts ?? gameStats.stats?.freeThrowAttempts ?? 0,
+    freeThrowMade: gameStats.freeThrowMade ?? gameStats.stats?.freeThrowMade ?? 0,
+  };
+
   const playerId = player.id || generateId();
-  
+
   if (!allStats[playerId]) {
     // Create new player record
     allStats[playerId] = {
@@ -73,38 +91,38 @@ export function recordGameStats(player, gameStats) {
       lastGameAt: null
     };
   }
-  
+
   const record = allStats[playerId];
-  
+
   // Update cumulative stats
   record.gamesPlayed++;
-  record.minutesPlayed += gameStats.minutes || 0;
-  record.totalPoints += gameStats.points || 0;
-  record.twoPointAttempts += gameStats.twoPointAttempts || 0;
-  record.twoPointMade += gameStats.twoPointMade || 0;
-  record.threePointAttempts += gameStats.threePointAttempts || 0;
-  record.threePointMade += gameStats.threePointMade || 0;
-  record.freeThrowAttempts += gameStats.freeThrowAttempts || 0;
-  record.freeThrowMade += gameStats.freeThrowMade || 0;
-  record.rebounds += gameStats.rebounds || 0;
-  record.assists += gameStats.assists || 0;
-  record.steals += gameStats.steals || 0;
-  record.blocks += gameStats.blocks || 0;
-  record.turnovers += gameStats.turnovers || 0;
-  record.fouls += gameStats.fouls || 0;
-  
+  record.minutesPlayed += normalizedStats.minutes || 0;
+  record.totalPoints += normalizedStats.points || 0;
+  record.twoPointAttempts += normalizedStats.twoPointAttempts || 0;
+  record.twoPointMade += normalizedStats.twoPointMade || 0;
+  record.threePointAttempts += normalizedStats.threePointAttempts || 0;
+  record.threePointMade += normalizedStats.threePointMade || 0;
+  record.freeThrowAttempts += normalizedStats.freeThrowAttempts || 0;
+  record.freeThrowMade += normalizedStats.freeThrowMade || 0;
+  record.rebounds += normalizedStats.rebounds || 0;
+  record.assists += normalizedStats.assists || 0;
+  record.steals += normalizedStats.steals || 0;
+  record.blocks += normalizedStats.blocks || 0;
+  record.turnovers += normalizedStats.turnovers || 0;
+  record.fouls += normalizedStats.fouls || 0;
+
   // Update records
-  if (gameStats.points > record.highestPoints) {
-    record.highestPoints = gameStats.points;
+  if (normalizedStats.points > record.highestPoints) {
+    record.highestPoints = normalizedStats.points;
   }
-  if (gameStats.points >= 10) {
+  if (normalizedStats.points >= 10) {
     record.gamesWithDoubleDigits++;
   }
-  
+
   record.lastGameAt = new Date().toISOString();
-  
+
   savePlayerStats(allStats);
-  
+
   return record;
 }
 
@@ -119,7 +137,7 @@ export function recordMatchStats(homePlayers, awayPlayers, homeTeamName, awayTea
   homePlayers.forEach(player => {
     recordGameStats({ ...player, teamName: homeTeamName }, player);
   });
-  
+
   awayPlayers.forEach(player => {
     recordGameStats({ ...player, teamName: awayTeamName }, player);
   });
@@ -182,9 +200,9 @@ export function getTopPPG(limit = 10, minGames = 3) {
  */
 export function getShootingPercentages(playerId) {
   const player = getPlayerCareerStats(playerId);
-  
+
   if (!player) return null;
-  
+
   const twoPct = player.twoPointAttempts > 0 
     ? ((player.twoPointMade / player.twoPointAttempts) * 100).toFixed(1)
     : '0.0';
@@ -202,7 +220,7 @@ export function getShootingPercentages(playerId) {
   const fgPct = totalAttempts > 0 
     ? ((totalMade / totalAttempts) * 100).toFixed(1)
     : '0.0';
-  
+
   return {
     twoPoint: twoPct,
     threePoint: threePct,
@@ -239,11 +257,11 @@ export function clearAllPlayerStats() {
  */
 export function getPlayerSummary(playerId) {
   const player = getPlayerCareerStats(playerId);
-  
+
   if (!player) return null;
-  
+
   const percentages = getShootingPercentages(playerId);
-  
+
   return {
     ...player,
     ppg: player.gamesPlayed > 0 ? (player.totalPoints / player.gamesPlayed).toFixed(1) : '0.0',

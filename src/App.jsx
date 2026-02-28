@@ -5,56 +5,121 @@ import AuthScreen from './ui/AuthScreen.jsx';
 import LeagueHub from './ui/LeagueHub.jsx';
 import LeagueView from './ui/LeagueView.jsx';
 import PlayerStatsView from './ui/PlayerStatsView.jsx';
+import TacticsPicker from './ui/TacticsPicker.jsx';
+import DraftRoom from './ui/DraftRoom.jsx';
+import FantasyDashboard from './ui/FantasyDashboard.jsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
-import { recordLocalMatchResult, getLocalLeague } from './league/localLeague.js';
+import { getLocalLeague } from './league/localLeague.js';
+import { persistMatchResult } from './services/matchPersistence.js';
+import { updateUserStats } from './firebase/database.js';
+import { calculatePlayerFantasyPoints, DEFAULT_SCORING_CONFIG } from './core/fantasyScoring.js';
+import { engineToFantasy } from './core/statBridge.js';
+import { processMatchXP } from './services/progressionService.js';
 
 const translations = {
   pt: {
     welcomeTitle: 'Escolha o Modo de Jogo',
     quickMatch: 'Partida Rápida',
     leagueMode: 'Modo Liga',
-    playerStats: 'Estatísticas'
+    playerStats: 'Estatísticas',
+    fantasyPts: 'Pontos Fantasy',
+    viewFantasy: 'Ver Fantasy',
+    xpGained: 'XP Ganho',
   },
   en: {
     welcomeTitle: 'Choose Game Mode',
     quickMatch: 'Quick Match',
     leagueMode: 'League Mode',
-    playerStats: 'Statistics'
+    playerStats: 'Statistics',
+    fantasyPts: 'Fantasy Points',
+    viewFantasy: 'View Fantasy',
+    xpGained: 'XP Gained',
   }
 };
 
 function GameApp() {
-  // Game states: 'menu', 'setup', 'playing', 'finished', 'league-hub', 'league-view', 'stats'
+  // Game states: 'menu', 'setup', 'tactics', 'playing', 'finished',
+  //              'league-hub', 'league-view', 'league-draft', 'fantasy-dashboard', 'stats'
   const [gameState, setGameState] = useState('menu');
   const [homeTeam, setHomeTeam] = useState(null);
   const [awayTeam, setAwayTeam] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
   const [language, setLanguage] = useState('pt');
-  // Default to guest mode since Firebase isn't configured yet
-  const [guestMode, setGuestMode] = useState(true);
+  // Default to showing auth screen; guests can opt-in via button
+  const [guestMode, setGuestMode] = useState(false);
   const [userTeam, setUserTeam] = useState(null);
   const [currentLeagueId, setCurrentLeagueId] = useState(null);
+  const [currentLeagueBackend, setCurrentLeagueBackend] = useState(null);
   const [currentMatchInfo, setCurrentMatchInfo] = useState(null);
+  // Phase 2: Tactics + Fantasy
+  const [currentTactics, setCurrentTactics] = useState(null);
+  const [matchFantasyScores, setMatchFantasyScores] = useState(null);
+  const [draftConfig, setDraftConfig] = useState(null);
 
   const { user, userData, loading, logOut, isAuthenticated } = useAuth();
 
   const t = translations[language];
 
+  // Quick match flow: setup → tactics → playing → finished
   const handleStartMatch = (home, away) => {
     setHomeTeam(home);
     setAwayTeam(away);
+    setGameState('tactics');
+  };
+
+  const handleTacticsConfirm = (tactics) => {
+    setCurrentTactics(tactics);
     setGameState('playing');
   };
 
-  const handleMatchEnd = (result) => {
+  const handleTacticsSkip = () => {
+    setCurrentTactics(null);
+    setGameState('playing');
+  };
+
+  const handleMatchEnd = async (result) => {
     setMatchResult(result);
-    
-    // If playing a league match, record the result
-    if (currentMatchInfo) {
-      const [homeScore, awayScore] = result.score.split(' - ').map(Number);
-      recordLocalMatchResult(currentMatchInfo.leagueId, currentMatchInfo.matchId, homeScore, awayScore);
+
+    // Calculate fantasy scores for all players
+    const fantasyScores = computeFantasyScores(result);
+    setMatchFantasyScores(fantasyScores);
+
+    // Calculate XP gains for all players
+    const xpResults = processMatchXP(result);
+    // XP results are available in fantasyScores for display
+    if (fantasyScores) {
+      // Attach XP data to fantasy scores for the finished screen
+      const attachXP = (fantasyTeam, xpTeam) => {
+        for (const fp of fantasyTeam) {
+          const xr = xpTeam.find(x => x.name === fp.name);
+          if (xr) {
+            fp.xpGained = xr.xpGained;
+            fp.levelInfo = xr.levelInfo;
+          }
+        }
+      };
+      attachXP(fantasyScores.home, xpResults.home);
+      attachXP(fantasyScores.away, xpResults.away);
     }
-    
+
+    // Determine user's team name for win/loss detection
+    let userTeamName = null;
+    if (currentMatchInfo && currentMatchInfo.leagueId) {
+      const league = getLocalLeague(currentMatchInfo.leagueId);
+      const ut = league?.teams?.find(t => t.isUserTeam);
+      if (ut) userTeamName = ut.name;
+    }
+
+    // Persist match result to localStorage + Firestore (when authenticated)
+    await persistMatchResult({
+      result,
+      matchInfo: currentMatchInfo,
+      isAuthenticated,
+      user,
+      userTeamName,
+      updateUserStatsFn: updateUserStats,
+    });
+
     setGameState('finished');
   };
 
@@ -62,7 +127,9 @@ function GameApp() {
     setHomeTeam(null);
     setAwayTeam(null);
     setMatchResult(null);
-    
+    setCurrentTactics(null);
+    setMatchFantasyScores(null);
+
     // Return to league view if coming from league match
     if (currentMatchInfo) {
       setCurrentMatchInfo(null);
@@ -89,8 +156,9 @@ function GameApp() {
     setUserTeam(team);
   };
 
-  const handleSelectLeague = (leagueId) => {
+  const handleSelectLeague = (leagueId, backend) => {
     setCurrentLeagueId(leagueId);
+    setCurrentLeagueBackend(backend || 'local');
     setGameState('league-view');
   };
 
@@ -98,7 +166,18 @@ function GameApp() {
     setCurrentMatchInfo(matchInfo);
     setHomeTeam(matchInfo.homeTeam);
     setAwayTeam(matchInfo.awayTeam);
-    setGameState('playing');
+    setGameState('tactics');
+  };
+
+  const handleStartDraft = (config) => {
+    setDraftConfig(config);
+    setGameState('league-draft');
+  };
+
+  const handleDraftComplete = (draftResult) => {
+    setDraftConfig(null);
+    // Return to league view after draft
+    setGameState('league-view');
   };
 
   // Show loading while checking auth
@@ -123,14 +202,14 @@ function GameApp() {
             {language === 'pt' ? '🎮 Jogar como Convidado' : '🎮 Play as Guest'}
           </button>
           <div className="language-toggle" style={{ justifyContent: 'center', marginTop: '15px' }}>
-            <button 
-              className={language === 'pt' ? 'active' : ''} 
+            <button
+              className={language === 'pt' ? 'active' : ''}
               onClick={() => setLanguage('pt')}
             >
               🇧🇷 PT
             </button>
-            <button 
-              className={language === 'en' ? 'active' : ''} 
+            <button
+              className={language === 'en' ? 'active' : ''}
               onClick={() => setLanguage('en')}
             >
               🇺🇸 EN
@@ -158,14 +237,14 @@ function GameApp() {
             </span>
           )}
           <div className="language-toggle">
-            <button 
-              className={language === 'pt' ? 'active' : ''} 
+            <button
+              className={language === 'pt' ? 'active' : ''}
               onClick={() => setLanguage('pt')}
             >
               🇧🇷 PT
             </button>
-            <button 
-              className={language === 'en' ? 'active' : ''} 
+            <button
+              className={language === 'en' ? 'active' : ''}
               onClick={() => setLanguage('en')}
             >
               🇺🇸 EN
@@ -200,7 +279,7 @@ function GameApp() {
 
         {/* Player Stats View */}
         {gameState === 'stats' && (
-          <PlayerStatsView 
+          <PlayerStatsView
             language={language}
             onBack={() => setGameState('menu')}
           />
@@ -208,18 +287,29 @@ function GameApp() {
 
         {/* Team Setup for Quick Match */}
         {gameState === 'setup' && (
-          <TeamSetup 
-            onStartMatch={handleStartMatch} 
+          <TeamSetup
+            onStartMatch={handleStartMatch}
             onBack={() => setGameState('menu')}
-            language={language} 
+            language={language}
+          />
+        )}
+
+        {/* Tactics Picker (pre-match) */}
+        {gameState === 'tactics' && (
+          <TacticsPicker
+            language={language}
+            onConfirm={handleTacticsConfirm}
+            onBack={handleTacticsSkip}
           />
         )}
 
         {/* League Hub */}
         {gameState === 'league-hub' && (
-          <LeagueHub 
+          <LeagueHub
             language={language}
             userTeam={userTeam}
+            isAuthenticated={isAuthenticated}
+            user={user}
             onSelectLeague={handleSelectLeague}
             onBack={() => setGameState('menu')}
           />
@@ -229,23 +319,50 @@ function GameApp() {
         {gameState === 'league-view' && currentLeagueId && (
           <LeagueView
             leagueId={currentLeagueId}
+            backend={currentLeagueBackend}
             language={language}
+            isAuthenticated={isAuthenticated}
+            user={user}
             onPlayMatch={handlePlayLeagueMatch}
             onBack={() => setGameState('league-hub')}
           />
         )}
 
-        {/* Match Playing */}
-        {gameState === 'playing' && (
-          <MatchView 
-            homeTeam={homeTeam} 
-            awayTeam={awayTeam} 
+        {/* League Draft */}
+        {gameState === 'league-draft' && draftConfig && (
+          <DraftRoom
             language={language}
+            draftConfig={draftConfig}
+            onDraftComplete={handleDraftComplete}
+            onBack={() => setGameState('league-view')}
+          />
+        )}
+
+        {/* Fantasy Dashboard */}
+        {gameState === 'fantasy-dashboard' && (
+          <FantasyDashboard
+            language={language}
+            leagueId={currentLeagueId}
+            lastMatchStats={matchResult}
+            onBack={() => {
+              if (currentMatchInfo) setGameState('league-view');
+              else setGameState('menu');
+            }}
+          />
+        )}
+
+        {/* Match Playing — pass tactics to MatchView */}
+        {gameState === 'playing' && (
+          <MatchView
+            homeTeam={homeTeam}
+            awayTeam={awayTeam}
+            language={language}
+            homeTactics={currentTactics}
             onMatchEnd={handleMatchEnd}
           />
         )}
 
-        {/* Match Finished */}
+        {/* Match Finished — with Fantasy Score Summary */}
         {gameState === 'finished' && matchResult && (
           <div className="match-result">
             <h2>
@@ -260,12 +377,59 @@ function GameApp() {
               {language === 'pt' ? 'Vencedor: ' : 'Winner: '}
               <strong>{matchResult.winner}</strong>
             </p>
-            <button className="play-again-btn" onClick={handlePlayAgain}>
-              {currentMatchInfo 
-                ? (language === 'pt' ? '📊 Ver Classificação' : '📊 View Standings')
-                : (language === 'pt' ? '🔄 Jogar Novamente' : '🔄 Play Again')
-              }
-            </button>
+
+            {/* Fantasy Score Summary */}
+            {matchFantasyScores && (
+              <div style={{ margin: '15px auto', maxWidth: '500px' }}>
+                <h3 style={{ color: '#ff6b35', textAlign: 'center', marginBottom: '10px' }}>
+                  ⭐ {t.fantasyPts}
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  {/* Home team top scorer */}
+                  <div style={{ background: 'rgba(255,107,53,0.1)', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '0.8em', color: '#aaa', marginBottom: '4px' }}>{matchResult.homeTeam}</div>
+                    {matchFantasyScores.home.slice(0, 3).map((p, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85em', padding: '2px 0' }}>
+                        <span>{p.name}</span>
+                        <span>
+                          <span style={{ color: '#ff6b35', fontWeight: 'bold' }}>{p.fantasyPoints.toFixed(1)}</span>
+                          {p.xpGained > 0 && <span style={{ color: '#4CAF50', fontSize: '0.8em', marginLeft: '4px' }}>+{p.xpGained}xp</span>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Away team top scorer */}
+                  <div style={{ background: 'rgba(255,107,53,0.1)', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '0.8em', color: '#aaa', marginBottom: '4px' }}>{matchResult.awayTeam}</div>
+                    {matchFantasyScores.away.slice(0, 3).map((p, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85em', padding: '2px 0' }}>
+                        <span>{p.name}</span>
+                        <span>
+                          <span style={{ color: '#ff6b35', fontWeight: 'bold' }}>{p.fantasyPoints.toFixed(1)}</span>
+                          {p.xpGained > 0 && <span style={{ color: '#4CAF50', fontSize: '0.8em', marginLeft: '4px' }}>+{p.xpGained}xp</span>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="play-again-btn" onClick={handlePlayAgain}>
+                {currentMatchInfo
+                  ? (language === 'pt' ? '📊 Ver Classificação' : '📊 View Standings')
+                  : (language === 'pt' ? '🔄 Jogar Novamente' : '🔄 Play Again')
+                }
+              </button>
+              <button
+                className="play-again-btn"
+                onClick={() => setGameState('fantasy-dashboard')}
+                style={{ background: 'linear-gradient(135deg, #ff6b35, #ff8f60)' }}
+              >
+                ⭐ {t.viewFantasy}
+              </button>
+            </div>
           </div>
         )}
       </main>
@@ -275,6 +439,41 @@ function GameApp() {
       </footer>
     </div>
   );
+}
+
+/**
+ * Compute fantasy points for all players from a match result.
+ * Returns { home: [{ name, fantasyPoints }], away: [{ name, fantasyPoints }] }
+ */
+function computeFantasyScores(result) {
+  if (!result) return null;
+
+  const computeTeam = (playerStats) => {
+    if (!playerStats || !Array.isArray(playerStats)) return [];
+    return playerStats.map(p => {
+      // Convert engine stat shape to fantasy scoring shape
+      const fantasyStats = engineToFantasy({
+        pointsScored: p.points || 0,
+        assists: p.assists || 0,
+        rebounds: p.rebounds || 0,
+        steals: p.steals || 0,
+        blocks: p.blocks || 0,
+      });
+      const result = calculatePlayerFantasyPoints(fantasyStats, DEFAULT_SCORING_CONFIG);
+      return {
+        name: p.name,
+        position: p.position,
+        fantasyPoints: result.total,
+        breakdown: result.breakdown,
+        stats: p,
+      };
+    }).sort((a, b) => b.fantasyPoints - a.fantasyPoints);
+  };
+
+  return {
+    home: computeTeam(result.homeTeamStats),
+    away: computeTeam(result.awayTeamStats),
+  };
 }
 
 function App() {

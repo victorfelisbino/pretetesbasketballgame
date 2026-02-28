@@ -1,6 +1,50 @@
 import { ActionResolver } from './actionResolver.js';
 import { DribbleSystem } from './dribbleSystem.js';
 
+// ---------------------------------------------------------------------------
+// Inline DiceRoller
+// (Mirrors src/dice.js — kept inline to avoid CommonJS/ESM boundary issues)
+// ---------------------------------------------------------------------------
+const _DiceRoller = (typeof DiceRoller !== 'undefined') ? DiceRoller : {
+    rollDie(sides = 6) {
+        return Math.floor(Math.random() * sides) + 1;
+    },
+    rollMultiple(quantity, sides) {
+        const rolls = [];
+        let total = 0;
+        for (let i = 0; i < quantity; i++) {
+            const roll = this.rollDie(sides);
+            rolls.push(roll);
+            total += roll;
+        }
+        return { rolls, total, notation: `${quantity}d${sides}` };
+    },
+};
+
+// ---------------------------------------------------------------------------
+// Court stub
+// (The real Court class lives in src/court.js which uses CommonJS exports.
+//  When loaded via <script> tags the global Court is available; otherwise we
+//  provide a minimal stub so the MatchEngine constructor does not crash.)
+// ---------------------------------------------------------------------------
+const _Court = (typeof Court !== 'undefined') ? Court : class CourtStub {
+    constructor(width = 50, height = 30) {
+        this.width = width;
+        this.height = height;
+        this.ballPossession = null;
+    }
+    setupTeams() {}
+    setBallPossession(player) { this.ballPossession = player; }
+    movePlayer() {}
+    getNearestOpponent(_player, opponents) {
+        return opponents && opponents.length > 0 ? opponents[0] : null;
+    }
+    areAdjacent() { return true; }
+    getShootingDistance() { return 'mid'; }
+    getState() { return {}; }
+    resetPositions() {}
+};
+
 /**
  * Match Engine
  * Core game simulation loop - runs the basketball match
@@ -17,7 +61,7 @@ class MatchEngine {
     constructor(homeTeam, awayTeam, options = {}) {
         this.homeTeam = homeTeam;
         this.awayTeam = awayTeam;
-        this.court = new Court(50, 30);
+        this.court = new _Court(50, 30);
         
         // Match state
         this.round = 0;
@@ -28,6 +72,11 @@ class MatchEngine {
         // Score tracking
         this.homeTeam.score = 0;
         this.awayTeam.score = 0;
+
+        // Foul tracking: team fouls per quarter (bonus threshold = 5 fouls/quarter)
+        // Key = quarter (1–4), value = fouls committed by that team in that quarter
+        this.homeTeamFouls = { 1: 0, 2: 0, 3: 0, 4: 0 };
+        this.awayTeamFouls = { 1: 0, 2: 0, 3: 0, 4: 0 };
         
         // Narration system
         this.enableNarration = options.enableNarration !== false;
@@ -166,6 +215,12 @@ class MatchEngine {
         const defender = this.court.getNearestOpponent(ballCarrier, defendingTeam.getActivePlayers());
         // Attempt steal if defender is close (within 5 squares) - 25% chance
         if (defender && this.court.areAdjacent(ballCarrier, defender, 5) && Math.random() < 0.25) {
+            // Check for reach-in foul BEFORE the dribble contest (10% base chance)
+            const dribbleFoulCheck = ActionResolver.checkFoulOnDribble(ballCarrier, defender);
+            if (dribbleFoulCheck.foulOccurred) {
+                return this.handleNonShootingFoul(defender, ballCarrier, isHome);
+            }
+
             const stealSuccess = this.simulateDribbleContest(ballCarrier, defender);
             
             if (stealSuccess === true) {
@@ -203,7 +258,201 @@ class MatchEngine {
             }
         }
         
+        // Check for shooting foul before the shot resolves (15% for 2pt, 12% for 3pt)
+        // Re-uses the defender reference obtained earlier in this function
+        const foulDefender = defender ||
+            (defendingTeam.getActivePlayers().length > 0
+                ? defendingTeam.getActivePlayers()[0]
+                : null);
+
+        if (foulDefender) {
+            const shootFoulCheck = ActionResolver.checkFoulOnShotAttempt(ballCarrier, foulDefender, shotType);
+            if (shootFoulCheck.foulOccurred) {
+                return this.handleShotFoul(ballCarrier, foulDefender, shotType, isHome);
+            }
+        }
+
         return this.simulateShot(ballCarrier, shotType, isHome);
+    }
+
+    /**
+     * Handle a shooting foul: penalise the fouling defender, award free throws.
+     * Called from simulateAction() when checkFoulOnShotAttempt() returns foulOccurred=true.
+     *
+     * @param {Player} shooter       - Offensive player who was fouled
+     * @param {Player} foulingDef    - Defensive player who committed the foul
+     * @param {string} shotType      - '2pt' or '3pt'
+     * @param {boolean} isHome       - true if the offensive team is the home team
+     * @returns {boolean} Always true (the offensive team benefited from free throws)
+     */
+    handleShotFoul(shooter, foulingDef, shotType, isHome) {
+        const freeThrowCount = shotType === '3pt' ? 3 : 2;
+        const quarterKey = this.quarter;
+
+        // --- Personal foul on the defender ---
+        if (typeof foulingDef.addFoulCommitted === 'function') {
+            foulingDef.addFoulCommitted();
+        }
+
+        // --- Team foul tracking (defending team's fouls) ---
+        if (isHome) {
+            // Home team is attacking, so away team is defending
+            this.awayTeamFouls[quarterKey] = (this.awayTeamFouls[quarterKey] || 0) + 1;
+        } else {
+            this.homeTeamFouls[quarterKey] = (this.homeTeamFouls[quarterKey] || 0) + 1;
+        }
+
+        // --- Log the foul event ---
+        this.logEvent('foul_shooting',
+            `Shooting foul by ${foulingDef.name} on ${shooter.name}! ${freeThrowCount} free throw(s).`,
+            {
+                shooter: shooter.name,
+                defender: foulingDef.name,
+                shotType,
+                freeThrowCount,
+                foulCount: foulingDef.foulCount,
+                quarter: quarterKey
+            }
+        );
+
+        // --- Narrate the foul ---
+        this.addNarration('foulCommitted', { player: foulingDef.name, fouled: shooter.name });
+
+        // --- Foul-out check ---
+        const fouledOut = typeof foulingDef.isFouledOut === 'function'
+            ? foulingDef.isFouledOut()
+            : foulingDef.foulCount >= 6;
+
+        if (fouledOut) {
+            this.addNarration('foulOut', { player: foulingDef.name, fouls: foulingDef.foulCount });
+            this.logEvent('foul_out',
+                `${foulingDef.name} has fouled out (${foulingDef.foulCount} fouls)!`,
+                { player: foulingDef.name, fouls: foulingDef.foulCount }
+            );
+        }
+
+        // --- Simulate each free throw ---
+        for (let ft = 1; ft <= freeThrowCount; ft++) {
+            const ftResult = ActionResolver.resolveFreeThrow(shooter);
+
+            // Record the attempt on the player
+            shooter.attemptFreeThrow(ftResult.made);
+
+            // Award 1 point if made
+            if (ftResult.made) {
+                if (isHome) {
+                    this.homeTeam.score += 1;
+                } else {
+                    this.awayTeam.score += 1;
+                }
+            }
+
+            // Log each FT
+            this.logEvent('free_throw',
+                `${shooter.name} ${ftResult.made ? 'MAKES' : 'misses'} FT ${ft}/${freeThrowCount}`,
+                {
+                    made: ftResult.made,
+                    ftNumber: ft,
+                    totalFTs: freeThrowCount,
+                    successPercent: ftResult.successPercent,
+                    shooter: shooter.name
+                }
+            );
+
+            // Narrate each FT
+            const ftNarration = ftResult.made ? 'freeThrowMade' : 'freeThrowMissed';
+            this.addNarration(ftNarration, { player: shooter.name });
+        }
+
+        // --- Possession ends after free throws ---
+        this.switchPossession();
+        return true;
+    }
+
+    /**
+     * Handle a non-shooting (reach-in) foul during a dribble contest.
+     * The offensive team retains possession, but if the defending team is in the bonus
+     * (> 5 team fouls in the current quarter) the fouled player shoots 1 free throw.
+     *
+     * @param {Player} foulingDef  - Defender who committed the reach-in foul
+     * @param {Player} ballCarrier - Offensive player who was fouled
+     * @param {boolean} isHome     - true if the offensive team is the home team
+     * @returns {boolean} false (no field-goal score this action)
+     */
+    handleNonShootingFoul(foulingDef, ballCarrier, isHome) {
+        const quarterKey = this.quarter;
+
+        // --- Personal foul on the defender ---
+        if (typeof foulingDef.addFoulCommitted === 'function') {
+            foulingDef.addFoulCommitted();
+        }
+
+        // --- Team foul tracking ---
+        let defendingTeamFouls;
+        if (isHome) {
+            this.awayTeamFouls[quarterKey] = (this.awayTeamFouls[quarterKey] || 0) + 1;
+            defendingTeamFouls = this.awayTeamFouls[quarterKey];
+        } else {
+            this.homeTeamFouls[quarterKey] = (this.homeTeamFouls[quarterKey] || 0) + 1;
+            defendingTeamFouls = this.homeTeamFouls[quarterKey];
+        }
+
+        // --- Log the foul ---
+        this.logEvent('foul_non_shooting',
+            `Reach-in foul by ${foulingDef.name} on ${ballCarrier.name}`,
+            {
+                defender: foulingDef.name,
+                fouled: ballCarrier.name,
+                foulCount: foulingDef.foulCount,
+                quarter: quarterKey,
+                teamFoulsThisQuarter: defendingTeamFouls
+            }
+        );
+
+        // --- Narrate the foul ---
+        this.addNarration('foulCommitted', { player: foulingDef.name, fouled: ballCarrier.name });
+
+        // --- Foul-out check ---
+        const fouledOut = typeof foulingDef.isFouledOut === 'function'
+            ? foulingDef.isFouledOut()
+            : foulingDef.foulCount >= 6;
+
+        if (fouledOut) {
+            this.addNarration('foulOut', { player: foulingDef.name, fouls: foulingDef.foulCount });
+            this.logEvent('foul_out',
+                `${foulingDef.name} has fouled out (${foulingDef.foulCount} fouls)!`,
+                { player: foulingDef.name, fouls: foulingDef.foulCount }
+            );
+        }
+
+        // --- Bonus rule: > 5 team fouls this quarter → award 1 FT ---
+        if (defendingTeamFouls > 5) {
+            const ftResult = ActionResolver.resolveFreeThrow(ballCarrier);
+
+            ballCarrier.attemptFreeThrow(ftResult.made);
+
+            if (ftResult.made) {
+                if (isHome) {
+                    this.homeTeam.score += 1;
+                } else {
+                    this.awayTeam.score += 1;
+                }
+            }
+
+            this.logEvent('free_throw',
+                `${ballCarrier.name} ${ftResult.made ? 'MAKES' : 'misses'} bonus free throw`,
+                { made: ftResult.made, successPercent: ftResult.successPercent, shooter: ballCarrier.name }
+            );
+
+            const ftNarration = ftResult.made ? 'freeThrowMade' : 'freeThrowMissed';
+            this.addNarration(ftNarration, { player: ballCarrier.name });
+
+            // After a bonus FT sequence, possession switches
+            this.switchPossession();
+        }
+        // If not in bonus: possession retained by offense — no switchPossession call
+
+        return false;
     }
 
     /**
@@ -415,7 +664,7 @@ class MatchEngine {
         };
         
         const posMod = positionMod[shotType][player.position] || 0;
-        const roll = DiceRoller.rollDie(20);
+        const roll = _DiceRoller.rollDie(20);
         const totalRoll = roll + skillBonus + posMod;
         
         const difficulty = shotType === '2pt' ? 12 : 15;
@@ -572,6 +821,10 @@ class MatchEngine {
         const winner = this.getWinner();
         const score = `${this.homeTeam.score}-${this.awayTeam.score}`;
 
+        // Aggregate team foul totals across all quarters
+        const homeTotalFouls = Object.values(this.homeTeamFouls).reduce((a, b) => a + b, 0);
+        const awayTotalFouls = Object.values(this.awayTeamFouls).reduce((a, b) => a + b, 0);
+
         return {
             homeTeam: this.homeTeam.name,
             awayTeam: this.awayTeam.name,
@@ -579,13 +832,23 @@ class MatchEngine {
             winner: winner ? winner.name : 'TIE',
             rounds: this.round,
             events: this.events,
+            // Foul summary added by Fouls + Free Throws system
+            foulSummary: {
+                homeTotalFouls,
+                awayTotalFouls,
+                homeFoulsByQuarter: { ...this.homeTeamFouls },
+                awayFoulsByQuarter: { ...this.awayTeamFouls }
+            },
             homeTeamStats: this.homeTeam.players.map(p => ({
                 name: p.name,
                 position: p.position,
                 points: p.stats.pointsScored,
                 assists: p.stats.assists,
                 rebounds: p.stats.rebounds,
-                steals: p.stats.steals
+                steals: p.stats.steals,
+                fouls: p.stats.fouls,
+                freeThrowsMade: p.stats.freethrowsMade,
+                freeThrowsAttempted: p.stats.freethrows
             })),
             awayTeamStats: this.awayTeam.players.map(p => ({
                 name: p.name,
@@ -593,7 +856,10 @@ class MatchEngine {
                 points: p.stats.pointsScored,
                 assists: p.stats.assists,
                 rebounds: p.stats.rebounds,
-                steals: p.stats.steals
+                steals: p.stats.steals,
+                fouls: p.stats.fouls,
+                freeThrowsMade: p.stats.freethrowsMade,
+                freeThrowsAttempted: p.stats.freethrows
             }))
         };
     }

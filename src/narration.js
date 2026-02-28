@@ -183,6 +183,38 @@ const templates = {
         comeback: [
             "📈 {team} está voltando ao jogo!",
             "📈 REAÇÃO de {team}! A diferença está diminuindo!"
+        ],
+
+        // Fouls
+        foulCommitted: [
+            "⚠️ FALTA de {player} em {fouled}! Lance livre!",
+            "⚠️ {player} comete falta em {fouled}! Vai para a linha de lance livre!",
+            "⚠️ Falta pessoal de {player}! {fouled} vai converter os lances livres!",
+            "⚠️ APITA O ÁRBITRO! Falta de {player} em {fouled}!"
+        ],
+        foulOut: [
+            "🚨 {player} cometeu {fouls} faltas! ESTÁ FORA DO JOGO!",
+            "🚨 {player} foi expulso por excesso de faltas ({fouls})! Fora da partida!",
+            "🚨 ELIMINADO! {player} atingiu o limite de faltas ({fouls})!"
+        ],
+
+        // Free throws
+        freeThrowMade: [
+            "🎯 UM PARA UM! {player} converte o lance livre!",
+            "🎯 {player} é preciso! Lance livre convertido!",
+            "🎯 FRIO! {player} não perdoa na linha de lance livre!",
+            "🎯 {player} faz o lance livre! Ponto!"
+        ],
+        freeThrowMissed: [
+            "❌ {player} erra o lance livre! Rebote!",
+            "❌ Lance livre desperdiçado por {player}!",
+            "❌ {player} não converte o lance livre! Que oportunidade perdida!",
+            "❌ Bola bate no aro! {player} falha no lance livre!"
+        ],
+        freeThrowAndOne: [
+            "🔥 E MAIS UM! {player} faz a cesta E ainda vai para o lance livre!",
+            "🔥 AND ONE! {player} converte com falta! Cesta + lance livre!",
+            "🔥 QUE JOGADA! {player} sofre a falta e converte! E mais um!"
         ]
     },
 
@@ -364,9 +396,58 @@ const templates = {
         comeback: [
             "📈 {team} is making a run!",
             "📈 COMEBACK ALERT! {team} is closing the gap!"
+        ],
+
+        // Fouls
+        foulCommitted: [
+            "⚠️ FOUL on {fouled} by {player}! Free throws!",
+            "⚠️ {player} reaches in on {fouled}! Heading to the line!",
+            "⚠️ Personal foul by {player}! {fouled} will shoot free throws!",
+            "⚠️ THE REFEREE WHISTLES! {player} fouls {fouled}!"
+        ],
+        foulOut: [
+            "🚨 {player} has fouled out with {fouls} fouls! OUT OF THE GAME!",
+            "🚨 {player} is disqualified with {fouls} fouls! Hit the showers!",
+            "🚨 FOULED OUT! {player} reaches the limit with {fouls} fouls!"
+        ],
+
+        // Free throws
+        freeThrowMade: [
+            "🎯 GOOD! {player} drains the free throw!",
+            "🎯 {player} is automatic from the line! Free throw made!",
+            "🎯 ICE COLD! {player} doesn't miss free throws!",
+            "🎯 {player} converts the free throw! One point!"
+        ],
+        freeThrowMissed: [
+            "❌ {player} misses the free throw! Rebound!",
+            "❌ Free throw wasted by {player}!",
+            "❌ {player} can't convert at the line! Missed opportunity!",
+            "❌ Off the rim! {player} misses the free throw!"
+        ],
+        freeThrowAndOne: [
+            "🔥 AND ONE! {player} scores AND draws the foul! One more chance!",
+            "🔥 PLUS ONE! {player} converts through contact! Basket counts + free throw!",
+            "🔥 WHAT A PLAY! {player} gets fouled on the make! And one!"
         ]
     }
 };
+
+// ---------------------------------------------------------------------------
+// Key aliases so gameController.js key names also resolve correctly
+// (gameController uses freeThrowMake/freeThrowMiss/andOne/foul/foulBonus
+//  while the canonical templates above use freeThrowMade/freeThrowMissed/etc.)
+// ---------------------------------------------------------------------------
+templates.pt.freeThrowMake = templates.pt.freeThrowMade;
+templates.pt.freeThrowMiss = templates.pt.freeThrowMissed;
+templates.pt.andOne = templates.pt.freeThrowAndOne;
+templates.pt.foul = templates.pt.foulCommitted;
+templates.pt.foulBonus = templates.pt.foulCommitted;
+
+templates.en.freeThrowMake = templates.en.freeThrowMade;
+templates.en.freeThrowMiss = templates.en.freeThrowMissed;
+templates.en.andOne = templates.en.freeThrowAndOne;
+templates.en.foul = templates.en.foulCommitted;
+templates.en.foulBonus = templates.en.foulCommitted;
 
 /**
  * Narration class for generating play-by-play commentary

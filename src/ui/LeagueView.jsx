@@ -1,83 +1,145 @@
 /**
  * League View Component
  * Shows standings, schedule, and league management
+ * Supports both localStorage and Firestore backends via leagueService
  */
 
 import { useState, useEffect } from 'react';
-import { 
-  getLocalLeague, 
-  getLocalStandings, 
-  getLocalUpcomingMatches,
-  getNextUserMatch,
-  generateLocalSchedule,
-  generateAITeams,
-  addTeamToLocalLeague,
-  startLocalNewSeason
-} from '../league/localLeague.js';
+import {
+  getLeague,
+  getStandings,
+  addAITeams,
+  generateSchedule,
+  getNextUserMatch as svcGetNextUserMatch,
+  startNewSeason,
+  BACKEND_LOCAL,
+  BACKEND_FIRESTORE,
+} from '../services/leagueService.js';
 
-export default function LeagueView({ 
-  leagueId, 
-  language = 'pt', 
-  onPlayMatch, 
-  onBack 
+export default function LeagueView({
+  leagueId,
+  backend = BACKEND_LOCAL,
+  language = 'pt',
+  isAuthenticated = false,
+  user = null,
+  onPlayMatch,
+  onBack,
 }) {
   const [league, setLeague] = useState(null);
   const [standings, setStandings] = useState([]);
-  const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [nextUserMatch, setNextUserMatch] = useState(null);
   const [activeTab, setActiveTab] = useState('standings');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const t = translations[language];
+  const authCtx = { isAuthenticated, user };
 
   useEffect(() => {
     loadLeagueData();
-  }, [leagueId]);
+  }, [leagueId, backend]);
 
-  const loadLeagueData = () => {
-    const leagueData = getLocalLeague(leagueId);
-    setLeague(leagueData);
-    
-    if (leagueData) {
-      setStandings(getLocalStandings(leagueId));
-      setUpcomingMatches(getLocalUpcomingMatches(leagueId, 10));
-      setNextUserMatch(getNextUserMatch(leagueId));
+  const loadLeagueData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const leagueData = await getLeague(leagueId, backend, authCtx);
+      setLeague(leagueData);
+
+      if (leagueData) {
+        // Standings
+        if (backend === BACKEND_LOCAL) {
+          const st = await getStandings(leagueId, backend, authCtx);
+          setStandings(st);
+        } else {
+          // For Firestore, standings are embedded in the normalized league
+          setStandings(
+            [...(leagueData.teams || [])].sort((a, b) => {
+              if (b.stats.wins !== a.stats.wins) return b.stats.wins - a.stats.wins;
+              const aDiff = a.stats.pointsFor - a.stats.pointsAgainst;
+              const bDiff = b.stats.pointsFor - b.stats.pointsAgainst;
+              if (bDiff !== aDiff) return bDiff - aDiff;
+              return b.stats.pointsFor - a.stats.pointsFor;
+            })
+          );
+        }
+
+        // Next user match
+        if (backend === BACKEND_LOCAL) {
+          const nxt = await svcGetNextUserMatch(leagueId, backend);
+          setNextUserMatch(nxt);
+        } else {
+          // For Firestore, compute from schedule
+          const userTeam = leagueData.teams?.find(t => t.isUserTeam);
+          if (userTeam) {
+            const nxt = (leagueData.schedule || []).find(m =>
+              m.status === 'scheduled' &&
+              (m.homeTeamId === userTeam.id || m.awayTeamId === userTeam.id)
+            );
+            setNextUserMatch(nxt || null);
+          } else {
+            setNextUserMatch(null);
+          }
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+
+    setLoading(false);
+  };
+
+  const handleStartSeason = async () => {
+    setError(null);
+    try {
+      await generateSchedule(leagueId, backend, league);
+      await loadLeagueData();
+    } catch (err) {
+      setError(err.message);
     }
   };
 
-  const handleStartSeason = () => {
-    generateLocalSchedule(leagueId);
-    loadLeagueData();
-  };
-
-  const handleAddAITeams = () => {
+  const handleAddAITeams = async () => {
     const currentCount = league?.teams?.length || 0;
     const needed = (league?.maxTeams || 8) - currentCount;
     if (needed > 0) {
-      generateAITeams(leagueId, needed);
-      loadLeagueData();
+      setError(null);
+      try {
+        await addAITeams(leagueId, needed, backend);
+        await loadLeagueData();
+      } catch (err) {
+        setError(err.message);
+      }
     }
   };
 
   const handlePlayNextMatch = () => {
-    if (nextUserMatch && onPlayMatch) {
+    if (nextUserMatch && onPlayMatch && league) {
       const homeTeam = league.teams.find(t => t.id === nextUserMatch.homeTeamId);
       const awayTeam = league.teams.find(t => t.id === nextUserMatch.awayTeamId);
-      
+
       onPlayMatch({
         leagueId,
+        backend,
         matchId: nextUserMatch.id,
         homeTeam,
-        awayTeam
+        awayTeam,
       });
     }
   };
 
-  const handleNewSeason = () => {
-    startLocalNewSeason(leagueId);
-    loadLeagueData();
+  const handleNewSeason = async () => {
+    setError(null);
+    try {
+      await startNewSeason(leagueId, backend);
+      await loadLeagueData();
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
-  if (!league) {
+  if (loading) {
     return (
       <div className="league-view">
         <div className="loading">
@@ -87,6 +149,19 @@ export default function LeagueView({
       </div>
     );
   }
+
+  if (!league) {
+    return (
+      <div className="league-view">
+        <button className="back-btn" onClick={onBack}>← {t.back}</button>
+        <p style={{ textAlign: 'center', marginTop: '40px' }}>
+          {error || (language === 'pt' ? 'Liga não encontrada.' : 'League not found.')}
+        </p>
+      </div>
+    );
+  }
+
+  const upcomingMatches = (league.schedule || []).filter(m => m.status === 'scheduled').slice(0, 10);
 
   return (
     <div className="league-view">
@@ -100,23 +175,44 @@ export default function LeagueView({
             {t.season} {league.season}
           </span>
         </div>
-        <span className={`status-badge status-${league.status}`}>
-          {t.statuses[league.status]}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {backend === BACKEND_FIRESTORE && (
+            <span style={{ fontSize: '0.7em', background: '#4CAF50', color: '#fff', padding: '2px 6px', borderRadius: '4px' }}>
+              Online
+            </span>
+          )}
+          <span className={`status-badge status-${league.status}`}>
+            {t.statuses[league.status] || league.status}
+          </span>
+        </div>
       </div>
+
+      {/* Invite Code Banner (Firestore leagues) */}
+      {backend === BACKEND_FIRESTORE && league.inviteCode && (
+        <div style={{ textAlign: 'center', padding: '8px', background: 'rgba(76,175,80,0.1)', borderRadius: '8px', margin: '10px 0', fontSize: '0.9em' }}>
+          {language === 'pt' ? 'Código de Convite: ' : 'Invite Code: '}
+          <strong style={{ letterSpacing: '2px', fontSize: '1.1em' }}>{league.inviteCode}</strong>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ color: '#ff4444', textAlign: 'center', padding: '10px', margin: '10px 0', background: 'rgba(255,68,68,0.1)', borderRadius: '8px' }}>
+          {error}
+        </div>
+      )}
 
       {/* Setup Phase */}
       {league.status === 'setup' && (
         <div className="league-setup-panel">
           <h3>{t.setupTitle}</h3>
           <p>{t.teamsCount}: {league.teams.length} / {league.maxTeams}</p>
-          
+
           {league.teams.length < league.maxTeams && (
             <button className="action-btn" onClick={handleAddAITeams}>
               🤖 {t.addAITeams}
             </button>
           )}
-          
+
           {league.teams.length >= 2 && (
             <button className="action-btn primary" onClick={handleStartSeason}>
               🚀 {t.startSeason}
@@ -156,19 +252,19 @@ export default function LeagueView({
 
       {/* Tabs */}
       <div className="league-tabs">
-        <button 
+        <button
           className={`tab ${activeTab === 'standings' ? 'active' : ''}`}
           onClick={() => setActiveTab('standings')}
         >
           📊 {t.standings}
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'schedule' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule')}
         >
           📅 {t.schedule}
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'teams' ? 'active' : ''}`}
           onClick={() => setActiveTab('teams')}
         >
@@ -187,12 +283,11 @@ export default function LeagueView({
                   <th>{t.team}</th>
                   <th>{t.played}</th>
                   <th>{t.wins}</th>
-                  <th>{t.draws}</th>
                   <th>{t.losses}</th>
+                  <th>{t.pct}</th>
                   <th>{t.pf}</th>
                   <th>{t.pa}</th>
                   <th>{t.diff}</th>
-                  <th>{t.pts}</th>
                 </tr>
               </thead>
               <tbody>
@@ -205,12 +300,11 @@ export default function LeagueView({
                     </td>
                     <td>{team.stats.played}</td>
                     <td>{team.stats.wins}</td>
-                    <td>{team.stats.draws}</td>
                     <td>{team.stats.losses}</td>
+                    <td className="points">{team.stats.played > 0 ? (team.stats.wins / team.stats.played).toFixed(3) : '.000'}</td>
                     <td>{team.stats.pointsFor}</td>
                     <td>{team.stats.pointsAgainst}</td>
                     <td>{team.stats.pointsFor - team.stats.pointsAgainst}</td>
-                    <td className="points">{team.stats.points}</td>
                   </tr>
                 ))}
               </tbody>
@@ -220,11 +314,10 @@ export default function LeagueView({
 
         {activeTab === 'schedule' && (
           <div className="schedule-list">
-            {league.schedule?.length === 0 ? (
+            {(league.schedule || []).length === 0 ? (
               <p className="empty-message">{t.noSchedule}</p>
             ) : (
               <>
-                {/* Group by round */}
                 {Array.from(new Set(league.schedule?.map(m => m.round) || [])).map(round => (
                   <div key={round} className="round-group">
                     <h4>{t.round} {round}</h4>
@@ -232,8 +325,8 @@ export default function LeagueView({
                       {league.schedule
                         .filter(m => m.round === round)
                         .map(match => (
-                          <div 
-                            key={match.id} 
+                          <div
+                            key={match.id}
                             className={`match-card ${match.status}`}
                           >
                             <div className="match-teams">
@@ -241,7 +334,7 @@ export default function LeagueView({
                                 {match.homeTeamName}
                               </span>
                               <span className="score">
-                                {match.status === 'completed' 
+                                {match.status === 'completed'
                                   ? `${match.homeScore} - ${match.awayScore}`
                                   : 'vs'
                                 }
@@ -269,14 +362,21 @@ export default function LeagueView({
                   {team.isUserTeam && '⭐ '}
                   {team.name}
                 </h4>
-                <div className="team-roster">
-                  {team.players?.map(player => (
-                    <div key={player.id} className="player-mini">
-                      <span className="position">{player.position}</span>
-                      <span className="name">{player.name}</span>
-                    </div>
-                  ))}
-                </div>
+                {team.players && (
+                  <div className="team-roster">
+                    {team.players.map(player => (
+                      <div key={player.id} className="player-mini">
+                        <span className="position">{player.position}</span>
+                        <span className="name">{player.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!team.players && team.stats && (
+                  <div className="team-roster" style={{ fontSize: '0.85em', color: '#aaa' }}>
+                    {team.stats.wins}W - {team.stats.losses}L
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -312,12 +412,11 @@ const translations = {
     team: 'Time',
     played: 'J',
     wins: 'V',
-    draws: 'E',
     losses: 'D',
+    pct: 'PCT',
     pf: 'PP',
     pa: 'PC',
     diff: 'SG',
-    pts: 'Pts',
     noSchedule: 'Nenhuma partida agendada ainda.'
   },
   en: {
@@ -343,14 +442,13 @@ const translations = {
     schedule: 'Schedule',
     teams: 'Teams',
     team: 'Team',
-    played: 'P',
+    played: 'GP',
     wins: 'W',
-    draws: 'D',
     losses: 'L',
+    pct: 'PCT',
     pf: 'PF',
     pa: 'PA',
     diff: 'Diff',
-    pts: 'Pts',
     noSchedule: 'No matches scheduled yet.'
   }
 };

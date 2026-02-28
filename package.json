@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node run-tests.js",
+    "test:watch": "node --watch run-tests.js"
   },
   "repository": {
     "type": "git",
