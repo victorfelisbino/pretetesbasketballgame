@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
-import { colors, spacing, font, radius, hitSlop } from '../../theme';
+import { colors, spacing, font, radius } from '../../theme';
 import { storage } from '../../lib/storage';
 import { createPlayerAuto } from '../../src/gameplay/playerCreator';
 
@@ -115,7 +115,11 @@ export default function LeaguesScreen() {
 
   const saveLeagues = useCallback(async (updated) => {
     setLeagues(updated);
-    await storage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    try {
+      await storage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Failed to save leagues:', e);
+    }
   }, []);
 
   const handleCreate = useCallback(async () => {

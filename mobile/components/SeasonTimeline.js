@@ -1,11 +1,10 @@
 import { useRef, useEffect, useMemo } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, font, TIER_COLORS } from '../theme';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
 const NODE_SIZE = 36;
 const NODE_GAP = 12;
 const NODE_STEP = NODE_SIZE + NODE_GAP;
@@ -117,6 +116,7 @@ export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayM
       return (b.pointsFor - b.pointsAgainst) - (a.pointsFor - a.pointsAgainst);
     });
     const idx = sorted.findIndex(s => s.teamId === userTeamId);
+    if (idx === -1) return { position: 0, total: sorted.length, wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 };
     const record = sorted[idx];
     return { position: idx + 1, total: sorted.length, ...record };
   }, [standings, userTeamId]);

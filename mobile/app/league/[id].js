@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,8 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import SeasonTimeline from '../../components/SeasonTimeline';
 import PlayoffBracket from '../../components/PlayoffBracket';
-import TierBadge from '../../components/TierBadge';
-import { colors, spacing, font, radius, hitSlop } from '../../theme';
+import { colors, spacing, font, radius } from '../../theme';
 import { storage } from '../../lib/storage';
 
 const TABS = ['Timeline', 'Standings', 'Schedule', 'Teams'];
@@ -21,9 +20,6 @@ export default function LeagueViewScreen() {
   const [league, setLeague] = useState(null);
   const [activeTab, setActiveTab] = useState('Timeline');
   const [loading, setLoading] = useState(true);
-
-  // Load league data (refresh on focus)
-  useFocusEffect(useCallback(() => { loadLeague(); }, [id]));
 
   const loadLeague = useCallback(async () => {
     setLoading(true);
@@ -40,6 +36,9 @@ export default function LeagueViewScreen() {
       setLoading(false);
     }
   }, [id]);
+
+  // Load league data (refresh on focus)
+  useFocusEffect(useCallback(() => { loadLeague(); }, [loadLeague]));
 
   // Derive season data from league schedule
   const season = useMemo(() => {

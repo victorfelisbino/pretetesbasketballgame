@@ -58,7 +58,7 @@ export default function MatchResultScreen() {
   }, [params.summary]);
 
   const fantasyData = useMemo(() => {
-    if (!summary) return null;
+    if (!summary?.homeTeamStats || !summary?.awayTeamStats) return null;
     const calc = (stats) => stats.map(p => {
       const norm = normalizePlayerStatsFromEngine(p);
       const fp = calculatePlayerFantasyPoints(norm);

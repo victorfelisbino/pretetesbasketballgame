@@ -93,6 +93,7 @@ export default function DraftRoomScreen() {
   const draftRef = useRef(null);
   const timerBarAnim = useRef(new Animated.Value(1)).current;
   const savingRef = useRef(false);
+  const aiPickingRef = useRef(false);
 
   // Sync ref with state
   const updateDraft = useCallback((newState) => {
@@ -218,15 +219,18 @@ export default function DraftRoomScreen() {
     if (!current || current.status !== 'picking') return;
     if (current.currentPick?.managerId === USER_TEAM_ID) return;
 
+    aiPickingRef.current = true;
     setAiPicking(true);
 
     setTimeout(() => {
       const latest = draftRef.current;
       if (!latest || latest.status !== 'picking') {
+        aiPickingRef.current = false;
         setAiPicking(false);
         return;
       }
       if (latest.currentPick?.managerId === USER_TEAM_ID) {
+        aiPickingRef.current = false;
         setAiPicking(false);
         return;
       }
@@ -238,6 +242,7 @@ export default function DraftRoomScreen() {
       } catch (e) {
         console.warn('AI pick failed:', e);
       }
+      aiPickingRef.current = false;
       setAiPicking(false);
     }, AI_PICK_DELAY_MS);
   }, [updateDraft]);
@@ -287,16 +292,16 @@ export default function DraftRoomScreen() {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [draftState?.currentPick?.pickNumber, isUserTurn]);
+  }, [draftState?.currentPick?.pickNumber, isUserTurn, handleTimerExpiry, timerBarAnim]);
 
   // ── AI chain effect ─────────────────────────────────────────────────
 
   useEffect(() => {
     if (draftState?.status !== 'picking') return;
-    if (draftState.currentPick?.managerId !== USER_TEAM_ID && !aiPicking) {
+    if (draftState.currentPick?.managerId !== USER_TEAM_ID && !aiPickingRef.current) {
       processAiTurn();
     }
-  }, [draftState?.currentPick?.pickNumber, draftState?.status]);
+  }, [draftState?.currentPick?.pickNumber, draftState?.status, processAiTurn]);
 
   // ── Save results on complete ────────────────────────────────────────
 

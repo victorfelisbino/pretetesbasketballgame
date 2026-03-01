@@ -373,7 +373,7 @@ export default function MarketplaceScreen() {
         },
       ],
     );
-  }, [canPropose, selectedTeam, offeredPlayers, requestedPlayers, tradeHistory]);
+  }, [canPropose, selectedTeam, offeredPlayers, requestedPlayers, tradeHistory, executeRosterSwap]);
 
   const executeRosterSwap = useCallback(async (fromUser, fromAI) => {
     try {
