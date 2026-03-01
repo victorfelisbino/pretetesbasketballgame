@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
@@ -22,10 +22,8 @@ export default function LeagueViewScreen() {
   const [activeTab, setActiveTab] = useState('Timeline');
   const [loading, setLoading] = useState(true);
 
-  // Load league data
-  useEffect(() => {
-    loadLeague();
-  }, [id]);
+  // Load league data (refresh on focus)
+  useFocusEffect(useCallback(() => { loadLeague(); }, [id]));
 
   const loadLeague = useCallback(async () => {
     setLoading(true);
@@ -168,6 +166,24 @@ export default function LeagueViewScreen() {
             </View>
           </View>
         </View>
+      </View>
+
+      {/* Action buttons */}
+      <View style={styles.actionRow}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push({ pathname: '/league/draft', params: { leagueId: league.id } })}
+        >
+          <Ionicons name="list-outline" size={18} color={colors.primary} />
+          <Text style={styles.actionBtnText}>Draft</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push({ pathname: '/league/marketplace', params: { leagueId: league.id } })}
+        >
+          <Ionicons name="swap-horizontal-outline" size={18} color={colors.primary} />
+          <Text style={styles.actionBtnText}>Trades</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Tabs */}
@@ -399,6 +415,30 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: font.xs,
     fontWeight: '600',
+  },
+
+  // Action buttons
+  actionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.bgCard,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.bgInput,
+  },
+  actionBtnText: {
+    fontSize: font.sm,
+    fontWeight: '600',
+    color: colors.primary,
   },
 
   // Tabs
