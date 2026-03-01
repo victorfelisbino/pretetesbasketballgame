@@ -10,6 +10,14 @@ import SeasonTimeline from '../../components/SeasonTimeline';
 import PlayoffBracket from '../../components/PlayoffBracket';
 import { colors, spacing, font, radius } from '../../theme';
 import { storage } from '../../lib/storage';
+import {
+  getNextUserAction,
+  processRound,
+  processPlayoffMatch,
+  simulateAIMatch,
+  checkSeasonPhase,
+  saveLeagueToStorage,
+} from '../../lib/seasonProgression';
 
 const TABS = ['Timeline', 'Standings', 'Schedule', 'Teams'];
 
@@ -20,6 +28,7 @@ export default function LeagueViewScreen() {
   const [league, setLeague] = useState(null);
   const [activeTab, setActiveTab] = useState('Timeline');
   const [loading, setLoading] = useState(true);
+  const [simming, setSimming] = useState(false);
 
   const loadLeague = useCallback(async () => {
     setLoading(true);
@@ -79,6 +88,7 @@ export default function LeagueViewScreen() {
     return {
       number: league.season || 1,
       status: league.status === 'completed' ? 'offseason' :
+              league.status === 'playoffs' ? 'playoffs' :
               league.status === 'in-progress' ? 'regular' : 'draft',
       schedule: roundSchedule,
       standings,
@@ -118,6 +128,81 @@ export default function LeagueViewScreen() {
         homeTeam: JSON.stringify(home),
         awayTeam: JSON.stringify(away),
         leagueId: league.id,
+      },
+    });
+  }, [league, userTeamId, router]);
+
+  // Determine what the user should do next in the season
+  const nextAction = useMemo(() => {
+    if (!league || !userTeamId) return { type: 'waiting' };
+    return getNextUserAction(league, userTeamId);
+  }, [league, userTeamId]);
+
+  // Get opponent team name for display
+  const getTeamName = useCallback((teamId) => {
+    const team = league?.teams?.find(t => t.id === teamId);
+    return team?.name || teamId;
+  }, [league]);
+
+  // Sim all AI matches in a round (user has bye or already played)
+  const handleSimRound = useCallback(async (roundNumber) => {
+    if (!league || simming) return;
+    setSimming(true);
+    try {
+      let updated = processRound(league, roundNumber);
+      updated = checkSeasonPhase(updated);
+      await saveLeagueToStorage(updated);
+      setLeague(updated);
+    } catch (e) {
+      console.warn('Failed to sim round:', e);
+    } finally {
+      setSimming(false);
+    }
+  }, [league, simming]);
+
+  // Sim an AI playoff match
+  const handleSimPlayoff = useCallback(async (matchup) => {
+    if (!league || simming) return;
+    setSimming(true);
+    try {
+      const homeTeam = league.teams?.find(t => t.id === matchup.homeTeamId);
+      const awayTeam = league.teams?.find(t => t.id === matchup.awayTeamId);
+      if (!homeTeam || !awayTeam) return;
+
+      const result = simulateAIMatch(homeTeam, awayTeam);
+      let updated = processPlayoffMatch(league, matchup.id, {
+        homeScore: result.homeScore,
+        awayScore: result.awayScore,
+      });
+      updated = checkSeasonPhase(updated);
+      await saveLeagueToStorage(updated);
+      setLeague(updated);
+    } catch (e) {
+      console.warn('Failed to sim playoff match:', e);
+    } finally {
+      setSimming(false);
+    }
+  }, [league, simming]);
+
+  // Navigate to play a playoff match
+  const handlePlayPlayoff = useCallback((matchup) => {
+    if (!league) return;
+    const userTeam = league.teams?.find(t => t.isUser);
+    const oppId = matchup.homeTeamId === userTeamId ? matchup.awayTeamId : matchup.homeTeamId;
+    const oppTeam = league.teams?.find(t => t.id === oppId);
+    if (!userTeam || !oppTeam) return;
+
+    const isHome = matchup.homeTeamId === userTeamId;
+    const home = { name: isHome ? userTeam.name : oppTeam.name, players: (isHome ? userTeam : oppTeam).players || [] };
+    const away = { name: isHome ? oppTeam.name : userTeam.name, players: (isHome ? oppTeam : userTeam).players || [] };
+
+    router.push({
+      pathname: '/match/tactics',
+      params: {
+        homeTeam: JSON.stringify(home),
+        awayTeam: JSON.stringify(away),
+        leagueId: league.id,
+        playoffMatchId: matchup.id,
       },
     });
   }, [league, userTeamId, router]);
@@ -202,11 +287,131 @@ export default function LeagueViewScreen() {
 
       {/* Tab Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {activeTab === 'Timeline' && (
+          <>
+            {/* Season Action Card */}
+            {nextAction.type === 'play_match' && (
+              <TouchableOpacity
+                style={styles.actionCard}
+                onPress={() => handlePlayMatch(nextAction.matchup)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.actionCardHeader}>
+                  <Ionicons name="basketball" size={20} color={colors.secondary} />
+                  <Text style={styles.actionCardTitle}>Round {nextAction.round}</Text>
+                </View>
+                <Text style={styles.actionCardDesc}>
+                  Play vs {getTeamName(nextAction.oppId)}
+                </Text>
+                <View style={styles.actionCardBtn}>
+                  <Ionicons name="play" size={16} color={colors.bgDark} />
+                  <Text style={styles.actionCardBtnText}>Play Match</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {nextAction.type === 'sim_round' && (
+              <TouchableOpacity
+                style={[styles.actionCard, styles.actionCardSim]}
+                onPress={() => handleSimRound(nextAction.round)}
+                disabled={simming}
+                activeOpacity={0.8}
+              >
+                <View style={styles.actionCardHeader}>
+                  <Ionicons name="play-forward" size={20} color={colors.primary} />
+                  <Text style={styles.actionCardTitle}>Round {nextAction.round}</Text>
+                </View>
+                <Text style={styles.actionCardDesc}>
+                  No match this round — simulate AI games
+                </Text>
+                <View style={[styles.actionCardBtn, { backgroundColor: colors.primary }]}>
+                  {simming ? (
+                    <ActivityIndicator size="small" color={colors.bgDark} />
+                  ) : (
+                    <Ionicons name="play-forward" size={16} color={colors.bgDark} />
+                  )}
+                  <Text style={styles.actionCardBtnText}>
+                    {simming ? 'Simulating...' : 'Sim Round'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {nextAction.type === 'play_playoff' && (
+              <TouchableOpacity
+                style={[styles.actionCard, styles.actionCardPlayoff]}
+                onPress={() => handlePlayPlayoff(nextAction.matchup)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.actionCardHeader}>
+                  <Ionicons name="trophy" size={20} color={colors.warning} />
+                  <Text style={[styles.actionCardTitle, { color: colors.warning }]}>
+                    Playoffs
+                  </Text>
+                </View>
+                <Text style={styles.actionCardDesc}>
+                  Play vs {getTeamName(nextAction.oppId)}
+                </Text>
+                <View style={[styles.actionCardBtn, { backgroundColor: colors.warning }]}>
+                  <Ionicons name="play" size={16} color={colors.bgDark} />
+                  <Text style={styles.actionCardBtnText}>Play Playoff</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {nextAction.type === 'sim_playoff' && (
+              <TouchableOpacity
+                style={[styles.actionCard, styles.actionCardSim]}
+                onPress={() => handleSimPlayoff(nextAction.matchup)}
+                disabled={simming}
+                activeOpacity={0.8}
+              >
+                <View style={styles.actionCardHeader}>
+                  <Ionicons name="trophy" size={20} color={colors.primary} />
+                  <Text style={styles.actionCardTitle}>Playoffs</Text>
+                </View>
+                <Text style={styles.actionCardDesc}>
+                  {getTeamName(nextAction.matchup?.homeTeamId)} vs {getTeamName(nextAction.matchup?.awayTeamId)} — Simulate
+                </Text>
+                <View style={[styles.actionCardBtn, { backgroundColor: colors.primary }]}>
+                  {simming ? (
+                    <ActivityIndicator size="small" color={colors.bgDark} />
+                  ) : (
+                    <Ionicons name="play-forward" size={16} color={colors.bgDark} />
+                  )}
+                  <Text style={styles.actionCardBtnText}>
+                    {simming ? 'Simulating...' : 'Sim Match'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {nextAction.type === 'season_complete' && (
+              <View style={styles.championCard}>
+                <Ionicons name="trophy" size={40} color={colors.warning} />
+                <Text style={styles.championTitle}>Season Complete!</Text>
+                <Text style={styles.championTeam}>
+                  Champion: {getTeamName(nextAction.champion?.teamId)}
+                </Text>
+              </View>
+            )}
+
+            {nextAction.type === 'eliminated' && (
+              <View style={styles.eliminatedCard}>
+                <Ionicons name="sad-outline" size={36} color={colors.error} />
+                <Text style={styles.eliminatedTitle}>Season Over</Text>
+                <Text style={styles.eliminatedDesc}>Eliminated in the playoffs</Text>
+              </View>
+            )}
+          </>
+        )}
+
         {activeTab === 'Timeline' && season && (
           <SeasonTimeline
             season={season}
             userTeamId={userTeamId}
             onPlayMatch={handlePlayMatch}
+            onSimRound={handleSimRound}
             league={league}
           />
         )}
@@ -622,5 +827,98 @@ const styles = StyleSheet.create({
     fontSize: font.xs,
     color: colors.textMuted,
     flex: 1,
+  },
+
+  // Season action cards
+  actionCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    borderWidth: 2,
+    borderColor: colors.secondary,
+  },
+  actionCardSim: {
+    borderColor: colors.primary,
+  },
+  actionCardPlayoff: {
+    borderColor: colors.warning,
+  },
+  actionCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  actionCardTitle: {
+    fontSize: font.sm,
+    fontWeight: '600',
+    color: colors.secondary,
+  },
+  actionCardDesc: {
+    fontSize: font.md,
+    fontWeight: '600',
+    color: colors.textLight,
+    marginBottom: spacing.md,
+  },
+  actionCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    minHeight: 44,
+  },
+  actionCardBtnText: {
+    fontSize: font.md,
+    fontWeight: '700',
+    color: colors.bgDark,
+  },
+
+  // Champion card
+  championCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    borderWidth: 2,
+    borderColor: colors.warning,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  championTitle: {
+    fontSize: font.xl,
+    fontWeight: '800',
+    color: colors.warning,
+  },
+  championTeam: {
+    fontSize: font.md,
+    color: colors.textLight,
+  },
+
+  // Eliminated card
+  eliminatedCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    borderWidth: 2,
+    borderColor: colors.error,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  eliminatedTitle: {
+    fontSize: font.xl,
+    fontWeight: '700',
+    color: colors.error,
+  },
+  eliminatedDesc: {
+    fontSize: font.md,
+    color: colors.textMuted,
   },
 });

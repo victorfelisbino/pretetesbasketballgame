@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { colors, spacing, font, radius } from '../../theme';
 import { storage } from '../../lib/storage';
@@ -9,8 +10,15 @@ import {
   normalizePlayerStatsFromEngine,
   calculatePlayerFantasyPoints,
 } from '../../src/core/fantasyScoring';
+import {
+  processRound,
+  processPlayoffMatch,
+  checkSeasonPhase,
+  saveLeagueToStorage,
+} from '../../lib/seasonProgression';
 
 const HISTORY_KEY = 'quadra_legacy_match_history';
+const LEAGUE_STORAGE_KEY = 'quadra_legacy_leagues';
 
 function StatRow({ label, home, away }) {
   return (
@@ -41,6 +49,7 @@ export default function MatchResultScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [activeTab, setActiveTab] = useState('box');
+  const [roundAdvanced, setRoundAdvanced] = useState(null);
 
   const leagueId = params.leagueId;
 
@@ -70,12 +79,13 @@ export default function MatchResultScreen() {
     };
   }, [summary]);
 
-  // Save match to history (once)
+  // Save match to history + advance league round (once)
   const saved = useRef(false);
   useEffect(() => {
     if (!summary || saved.current) return;
     saved.current = true;
     (async () => {
+      // 1. Save to match history
       try {
         const raw = await storage.getItem(HISTORY_KEY);
         const history = raw ? JSON.parse(raw) : [];
@@ -96,8 +106,64 @@ export default function MatchResultScreen() {
       } catch (e) {
         console.warn('Failed to save match history:', e);
       }
+
+      // 2. Advance league season if this was a league match
+      if (leagueId) {
+        try {
+          const leagueRaw = await storage.getItem(LEAGUE_STORAGE_KEY);
+          if (!leagueRaw) return;
+          const leagues = JSON.parse(leagueRaw);
+          const league = leagues.find(l => l.id === leagueId);
+          if (!league) return;
+
+          const playoffMatchId = params.playoffMatchId;
+          let updated;
+
+          if (playoffMatchId && league.playoffBracket) {
+            // Playoff match — record result in bracket
+            updated = processPlayoffMatch(league, playoffMatchId, {
+              homeScore: summary.homeScore,
+              awayScore: summary.awayScore,
+            });
+            updated = checkSeasonPhase(updated);
+            await saveLeagueToStorage(updated);
+            setRoundAdvanced('playoff');
+          } else {
+            // Regular season match — process round
+            const userTeam = league.teams?.find(t => t.isUser);
+            const userTeamId = userTeam?.id;
+            const matchInSchedule = league.schedule?.find(m =>
+              m.status !== 'completed' &&
+              ((m.homeTeam === userTeamId || m.awayTeam === userTeamId))
+            );
+            const roundNumber = matchInSchedule?.round;
+            if (roundNumber == null) return;
+
+            // Build user match result
+            const homeTeamId = matchInSchedule.homeTeam;
+            const awayTeamId = matchInSchedule.awayTeam;
+            const isHome = homeTeamId === userTeamId;
+            const userMatchResult = {
+              homeTeamId,
+              awayTeamId,
+              homeScore: isHome ? summary.homeScore : summary.awayScore,
+              awayScore: isHome ? summary.awayScore : summary.homeScore,
+              homeTeamStats: isHome ? summary.homeTeamStats : summary.awayTeamStats,
+              awayTeamStats: isHome ? summary.awayTeamStats : summary.homeTeamStats,
+            };
+
+            // Process round (sims all other matches) + check phase
+            updated = processRound(league, roundNumber, userMatchResult);
+            updated = checkSeasonPhase(updated);
+            await saveLeagueToStorage(updated);
+            setRoundAdvanced(roundNumber);
+          }
+        } catch (e) {
+          console.warn('Failed to advance league round:', e);
+        }
+      }
     })();
-  }, [summary]);
+  }, [summary, leagueId, params.playoffMatchId]);
 
   if (!summary) {
     return (
@@ -138,6 +204,18 @@ export default function MatchResultScreen() {
           {summary.winner === 'TIE' ? 'Draw!' : `${summary.winner} wins!`}
         </Text>
       </View>
+
+      {/* Round advancement banner */}
+      {roundAdvanced && (
+        <View style={styles.roundBanner}>
+          <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+          <Text style={styles.roundBannerText}>
+            {roundAdvanced === 'playoff'
+              ? 'Playoff match recorded — bracket updated'
+              : `Round ${roundAdvanced} completed — all matches simulated`}
+          </Text>
+        </View>
+      )}
 
       {/* Tabs */}
       <View style={styles.tabRow}>
@@ -204,7 +282,7 @@ export default function MatchResultScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button title="Back to Menu" onPress={handleBack} />
+        <Button title={leagueId ? 'Back to League' : 'Back to Menu'} onPress={handleBack} />
       </View>
     </SafeAreaView>
   );
@@ -226,6 +304,12 @@ const styles = StyleSheet.create({
   winnerScore: { color: colors.primary },
   dash: { fontSize: font.xxl, fontWeight: '800', color: colors.textMuted },
   winnerText: { fontSize: font.md, fontWeight: '600', color: colors.success, marginTop: spacing.sm },
+  roundBanner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: spacing.sm, paddingVertical: spacing.sm,
+    backgroundColor: 'rgba(76, 175, 80, 0.12)',
+  },
+  roundBannerText: { fontSize: font.sm, fontWeight: '600', color: colors.success },
   tabRow: {
     flexDirection: 'row', backgroundColor: colors.bgCard,
   },

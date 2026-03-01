@@ -21,7 +21,7 @@ const NODE_STEP = NODE_SIZE + NODE_GAP;
  * @param {function} onPlayMatch  – Called when "Play Now" is pressed
  * @param {object}   [league]     – League object for team name lookups
  */
-export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayMatch, league }) {
+export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayMatch, onSimRound, league }) {
   const scrollRef = useRef(null);
 
   // ── Derived data ──────────────────────────────────────────────────────────
@@ -100,6 +100,16 @@ export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayM
     }
     return null;
   }, [schedule, userTeamId]);
+
+  // Next round that needs simming (user has no match, but round has unplayed games)
+  const nextSimRound = useMemo(() => {
+    if (nextMatch) return null; // User has a match to play, no need to sim
+    for (const week of schedule) {
+      const hasUnplayed = week.matchups?.some(m => m.status === 'scheduled');
+      if (hasUnplayed) return week.round;
+    }
+    return null;
+  }, [schedule, nextMatch]);
 
   // Recent results (last 5 completed)
   const recentResults = useMemo(() => {
@@ -255,6 +265,29 @@ export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayM
           <View style={styles.playBtn}>
             <Text style={styles.playBtnText}>Play Now</Text>
             <Ionicons name="play" size={16} color={colors.bgDark} />
+          </View>
+        </TouchableOpacity>
+      )}
+
+      {/* Sim Round card (user has no match, but round needs simming) */}
+      {!nextMatch && nextSimRound && status === 'regular' && onSimRound && (
+        <TouchableOpacity
+          style={styles.simRoundCard}
+          onPress={() => onSimRound(nextSimRound)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.nextMatchHeader}>
+            <Ionicons name="play-forward" size={18} color={colors.primary} />
+            <Text style={[styles.nextMatchTitle, { color: colors.primary }]}>
+              Round {nextSimRound} — No match
+            </Text>
+          </View>
+          <Text style={styles.simRoundHint}>
+            Simulate AI games to advance the season
+          </Text>
+          <View style={[styles.playBtn, { backgroundColor: colors.primary }]}>
+            <Text style={styles.playBtnText}>Sim Round</Text>
+            <Ionicons name="play-forward" size={16} color={colors.bgDark} />
           </View>
         </TouchableOpacity>
       )}
@@ -547,6 +580,22 @@ const styles = StyleSheet.create({
     fontSize: font.md,
     fontWeight: '700',
     color: colors.bgDark,
+  },
+
+  // Sim round card
+  simRoundCard: {
+    marginHorizontal: spacing.lg,
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    marginBottom: spacing.md,
+  },
+  simRoundHint: {
+    fontSize: font.sm,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
   },
 
   // Season complete
