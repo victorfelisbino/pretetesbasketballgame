@@ -36,9 +36,11 @@ function PlayerCard({ player, selected, onToggle }) {
           </Text>
         </View>
       </View>
-      <Text style={[styles.checkMark, selected && styles.checkMarkActive]}>
-        {selected ? '✓' : '○'}
-      </Text>
+      <Ionicons
+        name={selected ? 'checkmark-circle' : 'ellipse-outline'}
+        size={24}
+        color={selected ? colors.primary : colors.textMuted}
+      />
     </TouchableOpacity>
   );
 }
@@ -129,12 +131,12 @@ export default function MatchSetupScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.vsCard}>
           <View style={styles.vsTeam}>
-            <Text style={styles.vsEmoji}>🏠</Text>
+            <Ionicons name="home" size={32} color={colors.primary} />
             <Text style={styles.vsTeamName}>{homeTeam.name}</Text>
           </View>
           <Text style={styles.vsText}>VS</Text>
           <View style={styles.vsTeam}>
-            <Text style={styles.vsEmoji}>🏟️</Text>
+            <Ionicons name="shield" size={32} color={colors.error} />
             <Text style={styles.vsTeamName}>{awayTeam.name}</Text>
           </View>
         </View>
@@ -196,7 +198,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg, marginBottom: spacing.md,
   },
   vsTeam: { alignItems: 'center', gap: spacing.xs },
-  vsEmoji: { fontSize: 32 },
   vsTeamName: { fontSize: font.md, fontWeight: '700', color: colors.textLight },
   vsText: { fontSize: font.xl, fontWeight: '800', color: colors.primary },
   rerollBtn: { marginBottom: spacing.lg },
@@ -228,7 +229,5 @@ const styles = StyleSheet.create({
   positionBadgeSelected: { backgroundColor: colors.primary, color: colors.textLight },
   playerName: { fontSize: font.md, fontWeight: '600', color: colors.textLight },
   playerDetails: { fontSize: font.xs, color: colors.textMuted },
-  checkMark: { fontSize: font.xl, color: colors.textMuted },
-  checkMarkActive: { color: colors.primary },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.bgCard },
 });

@@ -1,11 +1,35 @@
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { colors, spacing, font, radius } from '../../theme';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn, enterGuestMode, loading } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSignIn = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Missing Fields', 'Please enter both email and password.');
+      return;
+    }
+    try {
+      await signIn(email.trim(), password.trim());
+      router.replace('/(tabs)');
+    } catch (e) {
+      Alert.alert('Sign In Failed', e.message || 'Please try again.');
+    }
+  };
+
+  const handleGuest = () => {
+    enterGuestMode();
+    router.replace('/(tabs)');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -14,7 +38,7 @@ export default function LoginScreen() {
         style={styles.content}
       >
         <View style={styles.header}>
-          <Text style={styles.emoji}>🏀</Text>
+          <Ionicons name="basketball" size={56} color={colors.primary} />
           <Text style={styles.title}>Quadra Legacy</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
         </View>
@@ -28,6 +52,10 @@ export default function LoginScreen() {
               placeholderTextColor={colors.textMuted}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
+              value={email}
+              onChangeText={setEmail}
+              returnKeyType="next"
             />
           </View>
           <View style={styles.inputGroup}>
@@ -37,18 +65,23 @@ export default function LoginScreen() {
               placeholder="Password"
               placeholderTextColor={colors.textMuted}
               secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              returnKeyType="done"
+              onSubmitEditing={handleSignIn}
             />
           </View>
 
           <Button
             title="Sign In"
-            onPress={() => router.replace('/(tabs)')}
+            onPress={handleSignIn}
+            loading={loading}
             style={styles.signInBtn}
           />
 
           <Button
             title="Continue as Guest"
-            onPress={() => router.replace('/(tabs)')}
+            onPress={handleGuest}
             variant="outline"
           />
         </View>
@@ -71,14 +104,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xxl,
   },
-  emoji: {
-    fontSize: 56,
-    marginBottom: spacing.md,
-  },
   title: {
     fontSize: font.xxl,
     fontWeight: '800',
     color: colors.primary,
+    marginTop: spacing.md,
   },
   subtitle: {
     fontSize: font.md,

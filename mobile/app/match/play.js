@@ -89,9 +89,12 @@ export default function MatchPlayScreen() {
   const handleFinish = useCallback(() => {
     router.push({
       pathname: '/match/result',
-      params: { summary: JSON.stringify(summary) },
+      params: {
+        summary: JSON.stringify(summary),
+        ...(params.leagueId ? { leagueId: params.leagueId } : {}),
+      },
     });
-  }, [summary, router]);
+  }, [summary, params.leagueId, router]);
 
   const homeName = homeTeam.current?.name || 'Home';
   const awayName = awayTeam.current?.name || 'Away';

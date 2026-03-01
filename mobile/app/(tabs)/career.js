@@ -162,6 +162,7 @@ export default function CareerScreen() {
           { xp: result.xpGained, reason: 'Practice session', date: today },
         ];
         await saveCareer(afterXP);
+        Alert.alert('Practice Complete', `You earned +${result.xpGained} XP!`);
       }
     } catch (e) {
       console.warn('Practice error:', e);

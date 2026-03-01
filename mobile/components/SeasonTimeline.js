@@ -169,7 +169,7 @@ export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayM
           </Text>
           {tierConfig && (
             <View style={[styles.tierBadge, { backgroundColor: tierBadgeColor(tierConfig.id) }]}>
-              <Text style={styles.tierText}>{tierConfig.labelPt || tierConfig.label}</Text>
+              <Text style={styles.tierText}>{tierConfig.label || tierConfig.labelPt}</Text>
             </View>
           )}
         </View>
@@ -217,7 +217,7 @@ export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayM
 
           {/* Champion node */}
           <TimelineNode
-            label="🏆"
+            icon="trophy"
             color={season?.champion ? colors.warning : colors.bgInput}
             isCurrent={false}
             isLast
@@ -262,7 +262,7 @@ export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayM
       {/* Season Complete card */}
       {(status === 'offseason' || season?.champion) && (
         <View style={styles.completeCard}>
-          <Text style={styles.completeEmoji}>🏆</Text>
+          <Ionicons name="trophy" size={36} color={colors.warning} />
           <Text style={styles.completeTitle}>Season Complete!</Text>
           {season?.champion && (
             <Text style={styles.completeChampion}>
@@ -355,7 +355,7 @@ export default function SeasonTimeline({ season, userTeamId, tierConfig, onPlayM
 
 // ── Timeline Node sub-component ───────────────────────────────────────────
 
-function TimelineNode({ label, color, isCurrent, isFirst, isLast }) {
+function TimelineNode({ label, icon, color, isCurrent, isFirst, isLast }) {
   return (
     <View style={styles.nodeContainer}>
       {/* Connecting line (left) */}
@@ -367,9 +367,13 @@ function TimelineNode({ label, color, isCurrent, isFirst, isLast }) {
         { backgroundColor: color },
         isCurrent && styles.nodeCurrent,
       ]}>
-        <Text style={[styles.nodeLabel, isCurrent && styles.nodeLabelCurrent]}>
-          {label}
-        </Text>
+        {icon ? (
+          <Ionicons name={icon} size={16} color={isCurrent ? colors.bgDark : colors.textLight} />
+        ) : (
+          <Text style={[styles.nodeLabel, isCurrent && styles.nodeLabelCurrent]}>
+            {label}
+          </Text>
+        )}
       </View>
 
       {/* Connecting line (right) */}
@@ -555,10 +559,6 @@ const styles = StyleSheet.create({
     borderColor: colors.success,
     alignItems: 'center',
     marginBottom: spacing.md,
-  },
-  completeEmoji: {
-    fontSize: 48,
-    marginBottom: spacing.sm,
   },
   completeTitle: {
     fontSize: font.xl,

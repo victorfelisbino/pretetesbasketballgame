@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
@@ -11,27 +11,29 @@ export default function HomeScreen() {
   const router = useRouter();
   const [quickStats, setQuickStats] = useState(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [leaguesRaw, careerRaw, historyRaw] = await Promise.all([
-          storage.getItem('quadra_legacy_leagues'),
-          storage.getItem('quadra_legacy_career'),
-          storage.getItem('quadra_legacy_match_history'),
-        ]);
-        const leagues = leaguesRaw ? JSON.parse(leaguesRaw) : [];
-        const career = careerRaw ? JSON.parse(careerRaw) : null;
-        const history = historyRaw ? JSON.parse(historyRaw) : [];
-        setQuickStats({
-          leagueCount: leagues.length,
-          activeLeague: leagues.find(l => l.status === 'in-progress'),
-          careerLevel: career ? Math.floor((career.totalXP || 0) / 100) + 1 : 0,
-          careerTrack: career?.track,
-          matchesPlayed: history.length,
-        });
-      } catch { /* noop */ }
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        try {
+          const [leaguesRaw, careerRaw, historyRaw] = await Promise.all([
+            storage.getItem('quadra_legacy_leagues'),
+            storage.getItem('quadra_legacy_career'),
+            storage.getItem('quadra_legacy_match_history'),
+          ]);
+          const leagues = leaguesRaw ? JSON.parse(leaguesRaw) : [];
+          const career = careerRaw ? JSON.parse(careerRaw) : null;
+          const history = historyRaw ? JSON.parse(historyRaw) : [];
+          setQuickStats({
+            leagueCount: leagues.length,
+            activeLeague: leagues.find(l => l.status === 'in-progress'),
+            careerLevel: career ? Math.floor((career.totalXP || 0) / 100) + 1 : 0,
+            careerTrack: career?.track,
+            matchesPlayed: history.length,
+          });
+        } catch { /* noop */ }
+      })();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

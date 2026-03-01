@@ -42,6 +42,7 @@ export default function TacticsScreen() {
         awayTeam: params.awayTeam,
         playStyle,
         defScheme,
+        ...(params.leagueId ? { leagueId: params.leagueId } : {}),
       },
     });
   }, [params, playStyle, defScheme, router]);

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,6 +41,16 @@ export default function MatchResultScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [activeTab, setActiveTab] = useState('box');
+
+  const leagueId = params.leagueId;
+
+  const handleBack = useCallback(() => {
+    if (leagueId) {
+      router.replace(`/league/${leagueId}`);
+    } else {
+      router.replace('/(tabs)');
+    }
+  }, [leagueId, router]);
 
   const summary = useMemo(() => {
     if (!params.summary) return null;
@@ -94,7 +104,7 @@ export default function MatchResultScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
           <Text style={styles.noData}>No match data available</Text>
-          <Button title="Back to Menu" onPress={() => router.replace('/(tabs)')} />
+          <Button title="Back to Menu" onPress={handleBack} />
         </View>
       </SafeAreaView>
     );
@@ -194,7 +204,7 @@ export default function MatchResultScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button title="Back to Menu" onPress={() => router.replace('/(tabs)')} />
+        <Button title="Back to Menu" onPress={handleBack} />
       </View>
     </SafeAreaView>
   );

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
-import { colors, spacing, font, radius } from '../../theme';
+import { colors, spacing, font, radius, hitSlop } from '../../theme';
 import { storage } from '../../lib/storage';
 import { createPlayerAuto } from '../../src/gameplay/playerCreator';
 
@@ -64,7 +64,7 @@ function generateRoundRobinSchedule(teams) {
   return schedule;
 }
 
-function LeagueCard({ league, onPress }) {
+function LeagueCard({ league, onPress, onDelete }) {
   const teamsCount = league.teams?.length || 0;
   const statusColor = {
     'setup': colors.warning,
@@ -73,7 +73,12 @@ function LeagueCard({ league, onPress }) {
   }[league.status] || colors.textMuted;
 
   return (
-    <TouchableOpacity style={styles.leagueCard} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.leagueCard}
+      onPress={onPress}
+      onLongPress={onDelete}
+      activeOpacity={0.7}
+    >
       <View style={styles.leagueCardTop}>
         <Text style={styles.leagueName} numberOfLines={1}>{league.name}</Text>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
@@ -139,11 +144,11 @@ export default function LeaguesScreen() {
       }
 
       const schedule = generateRoundRobinSchedule(teams);
-      const seasonNum = leagues.filter(l => true).length + 1;
+      const seasonNum = leagues.length + 1;
 
       const newLeague = {
         id: leagueId,
-        name: `Liga Quadra S${seasonNum}`,
+        name: `Quadra League S${seasonNum}`,
         season: 1,
         status: 'in-progress',
         tier: 'amateur',
@@ -163,6 +168,24 @@ export default function LeaguesScreen() {
       setCreating(false);
     }
   }, [leagues, saveLeagues, router]);
+
+  const handleDelete = useCallback((league) => {
+    Alert.alert(
+      'Delete League',
+      `Are you sure you want to delete "${league.name}"? This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const updated = leagues.filter(l => l.id !== league.id);
+            await saveLeagues(updated);
+          },
+        },
+      ],
+    );
+  }, [leagues, saveLeagues]);
 
   const hasLeagues = leagues.length > 0;
 
@@ -194,6 +217,7 @@ export default function LeaguesScreen() {
             <LeagueCard
               league={item}
               onPress={() => router.push(`/league/${item.id}`)}
+              onDelete={() => handleDelete(item)}
             />
           )}
         />

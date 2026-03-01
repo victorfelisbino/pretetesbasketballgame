@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, font } from '../theme';
 
 /**
@@ -64,7 +65,7 @@ export default function PlayoffBracket({ bracket, userTeamId, league }) {
       {/* Champion */}
       {bracket.champion && (
         <View style={styles.championCard}>
-          <Text style={styles.championEmoji}>🏆</Text>
+          <Ionicons name="trophy" size={36} color={colors.warning} />
           <Text style={styles.championLabel}>Champion</Text>
           <Text style={[
             styles.championName,
@@ -265,10 +266,6 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     borderWidth: 2,
     borderColor: colors.warning,
-  },
-  championEmoji: {
-    fontSize: 36,
-    marginBottom: spacing.xs,
   },
   championLabel: {
     fontSize: font.xs,

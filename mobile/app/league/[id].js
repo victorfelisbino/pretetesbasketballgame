@@ -120,6 +120,7 @@ export default function LeagueViewScreen() {
       params: {
         homeTeam: JSON.stringify(home),
         awayTeam: JSON.stringify(away),
+        leagueId: league.id,
       },
     });
   }, [league, userTeamId, router]);
@@ -346,10 +347,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  loadingText: {
-    color: colors.textMuted,
-    fontSize: font.md,
   },
 
   // Header
